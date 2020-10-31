@@ -52,17 +52,25 @@ public:
 
 	void Init(CDialogEx* wMain);
 	void Init(const HTREEITEM& hTree);
+
+
+	void InitList(const HTREEITEM& hTree);
+	void InitList(vector<FILEINFO>& FLs);
+
+
 	void DoSomeThingTree(HTREEITEM& hTree);
 	BOOL GetTreePath(				//遍历树干文本
 		const HTREEITEM& htTree,	//传入的尾部句柄
-		const HTREEITEM& hrTree,	//传入的截至条件
+		UINT& uiCount,				//传入的截至条件
 		CString& str);
 protected:
-	//CMyFile*	m_CFile		= nullptr;
+	CMyFile	m_CFile;
 private:
-	CDialogEx* m_Main = nullptr;
-	CListCtrl* m_PVList = nullptr;
-	CTreeCtrl* m_PVTree = nullptr;
+	CDialogEx*	m_Main	 = nullptr;
+	CListCtrl*	m_PVList = nullptr;
+	CTreeCtrl*	m_PVTree = nullptr;
+	HTREEITEM	m_LCKind = nullptr;
+
 	PMyFunction	m_tRoot = nullptr;
 	DWORD		m_dw = 0;
 	CString		m_str;

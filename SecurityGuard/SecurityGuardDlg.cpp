@@ -65,6 +65,7 @@ BEGIN_MESSAGE_MAP(CSecurityGuardDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_NOTIFY(NM_DBLCLK, IDC_TREE1, &CSecurityGuardDlg::OnNMDblclkTree1)
 END_MESSAGE_MAP()
 
 
@@ -154,3 +155,24 @@ HCURSOR CSecurityGuardDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CSecurityGuardDlg::OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if (pNMHDR->idFrom == IDC_TREE1) {
+		CTreeCtrl* pTree = (CTreeCtrl*)GetDlgItem(IDC_TREE1);
+		ASSERT_VALID(pTree);
+		HTREEITEM hLeaf = pTree->GetSelectedItem();
+		bool bHasLeaf = pTree->ItemHasChildren(hLeaf), bExpand = false;
+		//if (bHasLeaf) {
+		//	bExpand = TVIS_EXPANDED &
+		//		pTree->GetItemState(hLeaf, TVIS_EXPANDED);
+		//}
+		OutputDebugString(pTree->GetItemText(hLeaf));
+		if (!bHasLeaf || TVIS_EXPANDED &
+			pTree->GetItemState(hLeaf, TVIS_EXPANDED))
+			gView.DoSomeThingTree(hLeaf);
+	}
+	*pResult = 0;
+}

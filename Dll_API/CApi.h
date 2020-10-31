@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <shlwapi.h>
 #pragma comment(lib,"Shlwapi.lib")
 

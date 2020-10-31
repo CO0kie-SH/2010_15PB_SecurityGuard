@@ -94,8 +94,7 @@ DWORD GetMd5_ByCertutil(char* pPath, char* md5)
 */
 void* GetFilePtr(char* pPath, __int64& pSize, char* str /*= nullptr*/)
 {
-	if (!PathFileExistsA(pPath))	return nullptr;			//如果文件不存在则返回
-
+	if (!PathFileExistsA(pPath))	return nullptr;		//如果文件不存在则返回
 	HANDLE handle = CreateFileA(pPath, GENERIC_ALL,		//打开文件句柄
 		0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 	if (handle == INVALID_HANDLE_VALUE)

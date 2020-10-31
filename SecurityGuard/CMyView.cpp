@@ -78,6 +78,53 @@ void CMyView::Init(const HTREEITEM& hTree)
 }
 
 /*
+	函数：初始化列表控件信息
+	作者：CO0kie丶
+	时间：2020-10-31_15-45
+*/
+void CMyView::InitList(const HTREEITEM& hTree)
+{
+	if (hTree == this->m_LCKind)	return;		//如果相同则返回
+	this->m_LCKind = hTree;
+	m_PVList->DeleteAllItems();
+	while (m_PVList->DeleteColumn(0));
+
+	if (hTree == this->m_tRoot->hFile.htTree) {
+		m_PVList->InsertColumn(0, _T("修改时间"), LVCFMT_CENTER, 222);
+		m_PVList->InsertColumn(0, _T("创建时间"), LVCFMT_CENTER, 222);
+		m_PVList->InsertColumn(0, _T("文件名"), LVCFMT_CENTER, 222);
+		m_PVList->InsertColumn(0, _T("大小"), LVCFMT_CENTER, 88);
+	}
+	m_PVList->InsertColumn(0, _T("序"), LVCFMT_CENTER, 50);
+}
+
+void CMyView::InitList(vector<FILEINFO>& FLs)
+{
+	size_t max = FLs.size(), i = max;
+	if (max == 0)	return;
+	this->m_PVList->DeleteAllItems();
+	CString str;	FILEINFO* fl = nullptr;
+	TCHAR buff[MAX_PATH];	int count = (int)max;
+	for (i = max, fl = &FLs[max - 1]; i--; --fl) {
+		if (fl->Size) {
+			wsprintf(buff, _T("%d"), count--);
+			this->m_PVList->InsertItem(0, buff);
+			this->m_PVList->SetItemText(0, 2, fl->data.cFileName);
+			StrFormatByteSize64(fl->Size, buff, MAX_PATH);
+			this->m_PVList->SetItemText(0, 1, buff);
+		}
+	}
+	for (i = max, fl = &FLs[max - 1]; i--; --fl) {
+		if (!fl->Size) {
+			wsprintf(buff, _T("%d"), count--);
+			this->m_PVList->InsertItem(0, buff);
+			this->m_PVList->SetItemText(0, 2, fl->data.cFileName);
+		}
+	}
+	//END
+}
+
+/*
 	函数：对树控件增加内容
 	作者：CO0kie丶
 	时间：2020-10-31_09-30
@@ -85,16 +132,35 @@ void CMyView::Init(const HTREEITEM& hTree)
 void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 {
 	MyTreeInfo& tInfo = m_tLeafs[hTree];		//map找到对应的树信息
+	InitList(tInfo.hrTree);						//初始化列表控件
 	MyTreeInfo tmp = MyTreeInfo{				//新建临时变量
 		/*本句柄*/	0,
-		/*根句柄*/	hTree,
+		/*根句柄*/	tInfo.hrTree,
 		/*	深度*/	tInfo.uiDeep + 1
 	};
+	size_t i = 0;
 	if (tInfo.hrTree == this->m_tRoot->hFile.htTree	//如果树根为文件
-		&& tInfo.uiDeep > 0) {						//且深度>0
+ 		&& tInfo.uiDeep > 0) {						//且深度>0
+		if (m_PVTree->ItemHasChildren(hTree))
+			return;
+
 		OutputDebugString(_T("\tDo搜索文件\n"));
-		CString strPath;
-		GetTreePath(tInfo.htTree, tInfo.hrTree, strPath);
+		CString strPath;	UINT deep = tInfo.uiDeep;	//初始化路径和深度
+		GetTreePath(tInfo.htTree, deep, strPath);		//通过树干获取路径
+		vector<FILEINFO> FLs;							//初始化数组
+		if (m_CFile.SearchPaths(FLs, strPath.GetBuffer()))
+		{
+			this->InitList(FLs);
+			size_t max = FLs.size();
+			LPFILEINFO pInfo = &FLs[0];
+			do {
+				tmp.htTree = m_PVTree->InsertItem(
+					pInfo->data.cFileName, hTree);
+				m_tLeafs[tmp.htTree] = tmp;
+				++pInfo;
+			} while (++i < max);
+			m_PVTree->Expand(hTree, TVE_EXPAND);
+		}
 	}
 }
 
@@ -104,8 +170,11 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 	时间：2020-10-31_10-40
 */
 BOOL CMyView::GetTreePath(const HTREEITEM& htTree,
-	const HTREEITEM& hrTree, CString& str)
+	UINT& uiCOunt, CString& str)
 {
-
-	return FALSE;
+	if (!uiCOunt)
+		return FALSE;
+	str = m_PVTree->GetItemText(htTree) + _T("\\") + str;
+	GetTreePath(m_PVTree->GetParentItem(htTree), --uiCOunt, str);
+	return TRUE;
 }
