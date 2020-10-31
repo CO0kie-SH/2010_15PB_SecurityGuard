@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+using std::vector;
 
 
 typedef struct _FILEINFO

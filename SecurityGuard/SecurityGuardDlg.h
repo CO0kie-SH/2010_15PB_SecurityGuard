@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include "CMyView.h"
 
 // CSecurityGuardDlg 对话框
 class CSecurityGuardDlg : public CDialogEx
