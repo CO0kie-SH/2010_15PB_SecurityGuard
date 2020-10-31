@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CApi.h" />
+    <ClInclude Include="CMyFile.h" />
     <ClInclude Include="CPE.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MYINFO.h" />
@@ -159,6 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CApi.cpp" />
+    <ClCompile Include="CMyFile.cpp" />
     <ClCompile Include="CPE.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="pch.cpp">

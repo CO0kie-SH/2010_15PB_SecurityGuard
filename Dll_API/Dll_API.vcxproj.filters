@@ -30,6 +30,9 @@
     <ClInclude Include="MYINFO.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CMyFile.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -42,6 +45,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CPE.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CMyFile.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
