@@ -1,0 +1,12 @@
+#include "pch.h"
+#include "CProcess.h"
+
+#pragma region ÀàÄÚº¯Êý
+CProcess::CProcess()
+{
+}
+
+CProcess::~CProcess()
+{
+}
+#pragma endregion

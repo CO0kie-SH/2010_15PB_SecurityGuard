@@ -1,9 +1,4 @@
 #pragma once
-#include <shlwapi.h>
-#pragma comment(lib,"Shlwapi.lib")
-
-#include <vector>
-using std::vector;
 
 
 typedef struct _FILEINFO
@@ -13,7 +8,7 @@ typedef struct _FILEINFO
 } FILEINFO, * LPFILEINFO;
 
 
-class _declspec(dllexport) CMyFile
+class DLLexp CMyFile
 {
 public:
 	CMyFile();

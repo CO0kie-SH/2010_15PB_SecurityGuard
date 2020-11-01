@@ -1,10 +1,9 @@
 #pragma once
 #include "CMyFile.h"
 #include "CPE.h"
+#include "CProcess.h"
 
 
-#define DLLexp						extern _declspec(dllexport)
-#define DLLexpC						extern "C" _declspec(dllexport)
 #define defExitID程序正常退出			0x0000;
 #define defExitID无法解析大文件		0x00F1
 

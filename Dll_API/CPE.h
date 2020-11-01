@@ -1,5 +1,4 @@
 #pragma once
-#include <tchar.h>
 
 #define		gdefPEFunctions_MAX		0x0B
 #define		gdefPEHeadInfos_MAX		0x10
@@ -86,7 +85,7 @@ typedef struct _NTHead_INFO
 	ULONGLONG   x64ImageBase = 0;
 }NTHead_INFO, * LPNTHead_INFO;
 
-class _declspec(dllexport) CPE
+class DLLexp CPE
 {
 public:
 	CPE(char* pFile, ULONGLONG fileSize);

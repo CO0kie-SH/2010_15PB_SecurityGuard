@@ -1,9 +1,10 @@
 #include "pch.h"
 #include "CPE.h"
-#include <stdio.h>
+
 #include "CApi.h"
 
 #pragma region 类内函数区
+
 CPE::CPE(char* pFilePath)
 {
 	_pFile = (char*)GetFilePtr(pFilePath, _FileSize);
