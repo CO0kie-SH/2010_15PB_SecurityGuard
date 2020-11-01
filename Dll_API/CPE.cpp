@@ -1,20 +1,30 @@
 #include "pch.h"
 #include "CPE.h"
 #include <stdio.h>
-
+#include "CApi.h"
 
 #pragma region 类内函数区
-CPE::CPE(char* pFile, ULONGLONG fileSize)
-	:_pNt(nullptr), FOA(0), is32o64(0)
+CPE::CPE(char* pFilePath)
 {
-	this->PEHead_Info.x64ImageBase = 0;
+	_pFile = (char*)GetFilePtr(pFilePath, _FileSize);
+	if (isPE(_pFile)) {
+		this->FOA = (SIZE_T)_pFile;
+	}
+}
+
+CPE::CPE(char* pFile, ULONGLONG fileSize)
+{
 	if (isPE(pFile)) {
 		this->FOA = (SIZE_T)pFile;
 	}
 }
 
+
+
 CPE::~CPE()
 {
+	if (_pFile)
+		HeapFree(GetProcessHeap(), 0, _pFile);
 }
 
 /*
@@ -48,10 +58,10 @@ BOOL CPE::isPE(char* lpImage)
 	作者：CO0kie丶
 	时间：2020-10-30_17-21
 */
-BOOL CPE::GetNTHeadInfo(bool isPrint)
+BOOL CPE::GetNTHeadInfo()
 {
 	if (FOA == 0)	return false;		//如果FOA为0则失败
-	if (this->PEHead_Info.x64ImageBase)	//非0值表示以及获取过了
+	if (this->NTHead_Info.dwPEHead[0])	//非0值表示以及获取过了
 		return true;		
 	//结构体[NT头]说明
 	/*
@@ -130,7 +140,7 @@ typedef struct _IMAGE_NT_HEADERS {
 	if (!pFileHeader || !pOptiHeader)	return false;
 	this->is32o64 = pOptiHeader->Magic == 0x10B ? 32 :
 		pOptiHeader->Magic == 0x20B ? 64 : 0;
-	LPDWORD dwInfos = (LPDWORD)&this->PEHead_Info;
+	LPDWORD dwInfos = (LPDWORD)&this->NTHead_Info;
 	dwInfos[Idx00入口点]		= pOptiHeader->AddressOfEntryPoint;
 	dwInfos[Idx01镜像地址]	= pOptiHeader->ImageBase;
 	dwInfos[Idx02镜像大小]	= pOptiHeader->SizeOfImage;
@@ -147,23 +157,11 @@ typedef struct _IMAGE_NT_HEADERS {
 	dwInfos[Idx13校验和]		= pOptiHeader->CheckSum;
 	dwInfos[Idx14可选头部大小] = pFileHeader->SizeOfOptionalHeader;
 	dwInfos[Idx15RVA数及大小] = pOptiHeader->NumberOfRvaAndSizes;
-	this->PEHead_Info.x64ImageBase = dwInfos[Idx01镜像地址];
 	if (this->is32o64 == 64) {
 		PIMAGE_OPTIONAL_HEADER64 pOptiHeader64 = (PIMAGE_OPTIONAL_HEADER64)
 			&_pNt->OptionalHeader;
-		this->PEHead_Info.x64ImageBase = pOptiHeader64->ImageBase;
+		this->NTHead_Info.x64ImageBase = pOptiHeader64->ImageBase;
 		dwInfos[Idx15RVA数及大小] = pOptiHeader64->NumberOfRvaAndSizes;
-	}
-	for (BYTE i = 0; i < 16; i++)
-	{
-		if (i == Idx01镜像地址 && this->is32o64 == 64) {
-			printf_s("%-16s%0llX\n", this->PEHead_Info.szPEHead[i],
-				this->PEHead_Info.x64ImageBase);
-		}
-		else {
-			printf_s("%-16s%08lX\n", this->PEHead_Info.szPEHead[i],
-				this->PEHead_Info.dwPEHead[i]);
-		}
 	}
 	if (this->is32o64 == 0) {
 		MessageBoxW(0, L"错误的标志字，请检查。", 0, 0);
@@ -193,8 +191,11 @@ typedef struct _IMAGE_SECTION_HEADER {
 } IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
 */
 	PIMAGE_SECTION_HEADER pHeader = IMAGE_FIRST_SECTION(_pNt);
-	//if (dwRva < _pNt->OptionalHeader.SizeOfHeaders)
-	//	return dwRva;
+	if (dwRva > 400 && dwRva < _pNt->OptionalHeader.SizeOfHeaders)
+		return dwRva;
+	else if (dwRva > 0x05 || dwRva > _pNt->OptionalHeader.SizeOfHeaders)
+		return NULL;
+	char buff[MAX_PATH];
 	for (DWORD i = 0; i < _pNt->FileHeader.NumberOfSections; ++i)
 	{
 		DWORD& dwSectionRva = pHeader[i].VirtualAddress;
@@ -208,10 +209,15 @@ typedef struct _IMAGE_SECTION_HEADER {
 		原型：原始VA - 默认基址   =  新VA -  新基址
 		*/
 		DWORD dwFOA = dwRva - dwSectionRva + dwSectionFoa;
-
-		printf_s("%lu\tR头%-5lX\tV大%5lX\t长%4lX\t尾%lX\t段Foa%4lX\t", i + 1,
-			dwSectionRva, dwSectionVSize, dwSectionLen, dwSectionEnd, dwSectionFoa);
-		printf_s("标志%lX\t%s\n", pHeader[i].Characteristics, pHeader[i].Name);
+		if (isPrint) {
+			wsprintfA(buff, "%lu\tR头%-5lX\tV大%5lX\t长%4lX\t尾%lX\t段Foa%4lX\t",
+				i + 1, dwSectionRva, dwSectionVSize,
+				dwSectionLen, dwSectionEnd, dwSectionFoa);
+			OutputDebugStringA(buff);
+			wsprintfA(buff, "标志%lX\t%s\n",
+				pHeader[i].Characteristics, pHeader[i].Name);
+			OutputDebugStringA(buff);
+		}
 	}
 	return NULL;
 }

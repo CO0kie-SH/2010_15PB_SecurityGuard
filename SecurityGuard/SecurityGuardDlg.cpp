@@ -165,10 +165,10 @@ void CSecurityGuardDlg::OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult)
 		ASSERT_VALID(pTree);
 		HTREEITEM hLeaf = pTree->GetSelectedItem();
 		bool bHasLeaf = pTree->ItemHasChildren(hLeaf), bExpand = false;
-		//if (bHasLeaf) {
-		//	bExpand = TVIS_EXPANDED &
-		//		pTree->GetItemState(hLeaf, TVIS_EXPANDED);
-		//}
+		if (bHasLeaf) {
+			bExpand = TVIS_EXPANDED &
+				pTree->GetItemState(hLeaf, TVIS_EXPANDED);
+		}
 		OutputDebugString(pTree->GetItemText(hLeaf));
 		if (!bHasLeaf || TVIS_EXPANDED &
 			pTree->GetItemState(hLeaf, TVIS_EXPANDED))

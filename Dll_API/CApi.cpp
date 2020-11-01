@@ -92,7 +92,7 @@ DWORD GetMd5_ByCertutil(char* pPath, char* md5)
 	作者：CO0kie丶
 	时间：2020-10-30_11-35
 */
-void* GetFilePtr(char* pPath, __int64& pSize, char* str /*= nullptr*/)
+void* GetFilePtr(char* pPath, __int64& pSize, char* strSize /*= nullptr*/)
 {
 	if (!PathFileExistsA(pPath))	return nullptr;		//如果文件不存在则返回
 	HANDLE handle = CreateFileA(pPath, GENERIC_ALL,		//打开文件句柄
@@ -113,10 +113,10 @@ void* GetFilePtr(char* pPath, __int64& pSize, char* str /*= nullptr*/)
 		return nullptr;			//为0则返回
 	pSize = qwFileSize;			//通过实参返回文件大小
 
-	if (str) {					//如果传入实参str，则保存str
+	if (strSize) {					//如果传入实参str，则保存str
 		char buff[33];	buff[32] = '\0';
 		PSTR pstr = StrFormatByteSize64A(qwFileSize, buff, 32);
-		wsprintfA(str, "%s", pstr);
+		wsprintfA(strSize, "%s", pstr);
 	}
 	HANDLE	hHeap = GetProcessHeap();	//获取默认堆
 	LPVOID	lpMem = HeapAlloc(hHeap, HEAP_GENERATE_EXCEPTIONS, qwFileSize);

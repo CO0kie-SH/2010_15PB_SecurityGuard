@@ -1,5 +1,7 @@
 #pragma once
-#include "CApi.h"
+#include <shlwapi.h>
+#pragma comment(lib,"Shlwapi.lib")
+
 #include <vector>
 using std::vector;
 
