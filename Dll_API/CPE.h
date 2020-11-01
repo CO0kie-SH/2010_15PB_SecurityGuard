@@ -1,4 +1,5 @@
 #pragma once
+#include "CInclude.h"
 
 #define		gdefPEFunctions_MAX		0x0B
 #define		gdefPEHeadInfos_MAX		0x10

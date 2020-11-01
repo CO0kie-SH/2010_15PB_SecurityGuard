@@ -135,8 +135,6 @@ void* GetFilePtr(char* pPath, __int64& pSize, char* strSize /*= nullptr*/)
 	HeapFree(hHeap, 0, lpMem);	lpMem = nullptr;
 	return lpMem;
 }
-
-
 #pragma endregion
 
 

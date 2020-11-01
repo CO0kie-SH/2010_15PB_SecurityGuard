@@ -1,6 +1,11 @@
 #include "pch.h"
 #include "CMyFile.h"
+
+
+#include <shlwapi.h>
+#pragma comment(lib,"Shlwapi.lib")
 #include <tchar.h>
+
 
 #pragma region ÀàÄÚº¯Êı
 CMyFile::CMyFile()

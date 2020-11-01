@@ -50,8 +50,7 @@ void CMyView::Init(const HTREEITEM& hTree)
 		1					//深度
 	};
 
-
-	//	IF START：文件功能区初始化
+	UINT i = 0;
 	if (hTree == this->m_tRoot->fFile.htTree) {			//判断树根为文件
 		size_t stLen = GetLogicalDriveStrings(0, NULL);	//获取驱动器
 		PTCHAR buff = new TCHAR[stLen + 2];				//初始缓冲区
@@ -69,20 +68,39 @@ void CMyView::Init(const HTREEITEM& hTree)
 			pDriveStrings += stLen + 1;					//字符串指针偏移
 		}
 		delete[] buff;									//释放缓冲区
-		//IF END：文件功能区初始化
-	}
-
-
-	//	IF START：PE功能区初始化
-	else if (hTree == this->m_tRoot->fPE.htTree) {		//判断是否为PE功能区
-		for (size_t i = 0; i < defMAX_PEindex; i++)
+	}	//IF END：文件功能区初始化
+	else if (hTree == this->m_tRoot->fPE.htTree) {
+		while (i < gdefPEFunctions_MAX)
 		{
-			tmp.str = gszPEFunctions[i];
+			tmp.str = gszPEFunctions[i++];
 			tmp.htTree = this->m_PVTree->InsertItem(tmp.str, hTree);
 			m_tLeafs[tmp.htTree] = tmp;
 		}
-		//IF END：PE功能区初始化
-	}
+	}	//IF END：PE区初始化
+	else if (hTree == this->m_tRoot->fProcsss.htTree) {
+		while (i < gdefPCFunctions_MAX)
+		{
+			tmp.str = gszPCFunctions[i++];
+			tmp.htTree = this->m_PVTree->InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}	//IF END：进程区初始化
+	else if (hTree == this->m_tRoot->fThread.htTree) {
+		while (i < gdefTHFunctions_MAX)
+		{
+			tmp.str = gszTHFunctions[i++];
+			tmp.htTree = this->m_PVTree->InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}	//IF END：线程区初始化
+	else if (hTree == this->m_tRoot->fModdle.htTree) {
+		while (i < gdefMDFunctions_MAX)
+		{
+			tmp.str = gszMDFunctions[i++];
+			tmp.htTree = this->m_PVTree->InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}	//IF END：模块区初始化
 	return;
 }
 
@@ -94,7 +112,7 @@ void CMyView::Init(const HTREEITEM& hTree)
 void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 {
 	MyTreeInfo& tInfo = m_tLeafs[hTree];	//map找到对应的[树叶信息]
-	InitList(tInfo);						//向列表控件初始化该内容
+	if (tInfo.uiDeep > 0)	InitList(tInfo);//向列表控件初始化该内容
 
 	size_t i = 0;			//临时循环变量
 	MyTreeInfo tmp{			//临时树叶变量
@@ -104,7 +122,6 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 	};
 
 
-	//IF START：向文件功能区添加目录
 	if (tInfo.hrTree == this->m_tRoot->fFile.htTree	//如果树根为文件
 		&& tInfo.uiDeep > 0) {						//且深度>0
 		if (m_PVTree->ItemHasChildren(hTree))		//如果该叶子节点有内容
@@ -129,10 +146,9 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 			}
 			m_PVTree->Expand(hTree, TVE_EXPAND);	//循环完毕后展开树枝
 		}
-		//IF END：向文件功能区添加目录
-	}
+	}	//IF END：向文件功能区添加目录
 	else if (tInfo.hrTree == this->m_tRoot->fPE.htTree	//如果树根为PE
-		&& tInfo.uiDeep == 1) {							//且深度>0
+		&& tInfo.uiDeep == 1) {							//且深度==1
 		//处理，表明PE被点击，增加List数据
 		CPE* pcPE = nullptr;
 		if (tInfo.str == gszPEFunctions[0]) {		//PE头
@@ -153,7 +169,15 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 		}
 
 		if (pcPE)	pcPE->~CPE();
-	}
+	}	//IF END：PE信息处理
+	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree	//如果树根为进程
+		&& tInfo.uiDeep == 1) {								//且深度==1
+		if (tInfo.str == gszPCFunctions[gdsz_枚举进程]) {		//枚举进程
+			vector<PROCESSINFO> proInfos;
+			if (m_CProcess.EnumProcess(proInfos))
+				this->InitList(proInfos);
+		}
+	}	//IF END：进程信息处理
 	return;
 }
 
@@ -187,6 +211,7 @@ void CMyView::InitList(const MyTreeInfo& tInfo)
 	m_PVList->DeleteAllItems();
 	while (m_PVList->DeleteColumn(0));
 
+	m_PVList->InsertColumn(0, _T("备注"), LVCFMT_CENTER, 123);
 	if (tInfo.hrTree == this->m_tRoot->fFile.htTree) {		//如果树根为文件
 		m_PVList->InsertColumn(0, _T("修改时间"), LVCFMT_CENTER, 222);
 		m_PVList->InsertColumn(0, _T("创建时间"), LVCFMT_CENTER, 222);
@@ -196,9 +221,17 @@ void CMyView::InitList(const MyTreeInfo& tInfo)
 	else if (tInfo.hrTree == this->m_tRoot->fPE.htTree		//如果树根为PE
 		&& tInfo.uiDeep == 1) {
 		if (tInfo.str == gszPEFunctions[0]) {	//NT头
-			m_PVList->InsertColumn(0, _T("备注"), LVCFMT_CENTER, 123);
 			m_PVList->InsertColumn(0, _T("配置值"), LVCFMT_CENTER, 123);
 			m_PVList->InsertColumn(0, _T("配置项"), LVCFMT_CENTER, 150);
+		}
+	}
+	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree	//如果树根为进程
+		&& tInfo.uiDeep == 1) {
+		if (tInfo.str == gszPCFunctions[0]) {	//枚举
+			m_PVList->InsertColumn(0, _T("进程名"), LVCFMT_CENTER, 222);
+			m_PVList->InsertColumn(0, _T("线程数"), LVCFMT_CENTER, 77);
+			m_PVList->InsertColumn(0, _T("本进程"), LVCFMT_CENTER, 77);
+			m_PVList->InsertColumn(0, _T("父进程"), LVCFMT_CENTER, 77);
 		}
 	}
 	m_PVList->InsertColumn(0, _T("序"), LVCFMT_CENTER, 50);
@@ -225,11 +258,34 @@ void CMyView::InitList(vector<FILEINFO>& FLs)
 			wsprintf(buff, _T("%d"), count--);
 			this->m_PVList->InsertItem(0, buff);
 			this->m_PVList->SetItemText(0, 2, fl->data.cFileName);
-
 		}
 	}
 	//END
 	return;
+}
+
+void CMyView::InitList(vector<PROCESSINFO>& PCs)
+{
+	size_t max = PCs.size(), i = max;
+	if (max-- == 0)	return;
+	LPPROCESSINFO fl = &PCs[max];
+	this->m_PVList->ShowWindow(SW_HIDE);
+	while (i--)
+	{
+		m_str.Format(_T("%llu"), i + 1);
+		this->m_PVList->InsertItem(0, m_str);
+		m_str.Format(_T("%lu"), fl->pPID);
+		this->m_PVList->SetItemText(0, 1, m_str);
+		m_str.Format(_T("%lu"), fl->tPID);
+		this->m_PVList->SetItemText(0, 2, m_str);
+		m_str.Format(_T("%lu"), fl->tTHs);
+		this->m_PVList->SetItemText(0, 3, m_str);
+		m_str = fl->name;
+		this->m_PVList->SetItemText(0, 4, m_str);		//设置进程名
+		--fl;
+	}
+	//this->m_PVList->EnsureVisible((int)max, FALSE);	//滚轮到底
+	this->m_PVList->ShowWindow(SW_SHOW);
 }
 
 void CMyView::InitList(_NTHead_INFO& NTHead, bool bClean /*= true*/)

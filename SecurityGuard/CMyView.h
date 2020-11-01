@@ -5,12 +5,8 @@
 #include "..\Dll_API\MYINFO.h"
 #pragma comment(lib,"..\\x64\\Debug\\Dll_API.lib")
 
-
 #include <map>
 using std::map;
-
-#define defMAX_Function		0x06
-#define defMAX_PEindex		0x0B
 
 const	PTCHAR	gszTreeFunctions[] = {
 	_T("进程功能区"),
@@ -63,9 +59,10 @@ public:
 	void Init(const HTREEITEM& hTree);
 
 
-	void InitList(const MyTreeInfo& tInfo);
-	void InitList(vector<FILEINFO>& FLs);
-	void InitList(_NTHead_INFO& NTHead, bool bClean = true);
+	void InitList(const MyTreeInfo&		tInfo);
+	void InitList(vector<FILEINFO>&		FLs);
+	void InitList(vector<PROCESSINFO>&	PCs);
+	void InitList(_NTHead_INFO& NTHead,	bool bClean = true);
 
 
 	void DoSomeThingTree(HTREEITEM& hTree);
@@ -77,6 +74,7 @@ public:
 		CString& str);				//传出的字符串
 protected:
 	CMyFile		m_CFile;				//文件
+	CMyProcess	m_CProcess;
 	WindStatu	m_Statu;				//视图状态
 private:
 	CDialogEx*	m_Main	 = nullptr;		//主窗口

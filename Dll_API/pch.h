@@ -10,13 +10,5 @@
 // 添加要在此处预编译的标头
 #include "framework.h"
 
-#define DLLexp	_declspec(dllexport)
-#define DLLexpC	 "C" _declspec(dllexport)
-
-#include <shlwapi.h>
-#pragma comment(lib,"Shlwapi.lib")
-#include <tchar.h>
-#include <vector>
-using std::vector;
 
 #endif //PCH_H

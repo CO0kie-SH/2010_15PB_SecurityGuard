@@ -33,7 +33,10 @@
     <ClInclude Include="CMyFile.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CProcess.h">
+    <ClInclude Include="CInclude.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CMyProcess.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,7 +56,7 @@
     <ClCompile Include="CMyFile.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CProcess.cpp">
+    <ClCompile Include="CMyProcess.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

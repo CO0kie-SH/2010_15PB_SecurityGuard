@@ -152,9 +152,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CApi.h" />
+    <ClInclude Include="CInclude.h" />
     <ClInclude Include="CMyFile.h" />
     <ClInclude Include="CPE.h" />
-    <ClInclude Include="CProcess.h" />
+    <ClInclude Include="CMyProcess.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MYINFO.h" />
     <ClInclude Include="pch.h" />
@@ -163,7 +164,7 @@
     <ClCompile Include="CApi.cpp" />
     <ClCompile Include="CMyFile.cpp" />
     <ClCompile Include="CPE.cpp" />
-    <ClCompile Include="CProcess.cpp" />
+    <ClCompile Include="CMyProcess.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

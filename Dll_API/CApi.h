@@ -1,7 +1,9 @@
 #pragma once
+#include "CInclude.h"
+
 #include "CMyFile.h"
 #include "CPE.h"
-#include "CProcess.h"
+#include "CMyProcess.h"
 
 
 #define defExitID程序正常退出			0x0000;
