@@ -3,9 +3,15 @@
 
 #include <iostream>
 
+#include "..\Dll_API\CApi.h"
+#pragma comment(lib,"..\\x64\\Debug\\Dll_API.lib")
 
 int main()
 {
 	std::cout << "Hello World!\n";
+	CMyServer cSV;
+	vector<SERVICEINFO> SVs;
+	cSV.EnumServer(SVs);
+	
 	return 0;
 }

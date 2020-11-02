@@ -2,7 +2,6 @@
 
 #include "resource.h"
 #include "..\Dll_API\CApi.h"
-#include "..\Dll_API\MYINFO.h"
 #pragma comment(lib,"..\\x64\\Debug\\Dll_API.lib")
 
 #include <map>
@@ -65,6 +64,7 @@ public:
 	void InitList(vector<THREADINFO>&	THs);
 	void InitList(vector<MODULEINFO>&	MDs);
 	void InitList(vector<HWND>&			HWs);
+	void InitList(vector<SERVICEINFO>&	SVs);
 
 	void InitList(_NTHead_INFO& NTHead,	bool bClean = true);
 

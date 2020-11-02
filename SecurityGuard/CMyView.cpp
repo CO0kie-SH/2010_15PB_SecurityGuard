@@ -109,6 +109,22 @@ void CMyView::Init(const HTREEITEM& hTree)
 			m_tLeafs[tmp.htTree] = tmp;
 		}
 	}	//IF END：窗口区初始化
+	else if (hTree == this->m_tRoot->fRubbish.htTree) {
+		while (i < gdefRBFunctions_MAX)
+		{
+			tmp.str = gszRBFunctions[i++];
+			tmp.htTree = this->m_PVTree->InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}	//IF END：垃圾区初始化
+	else if (hTree == this->m_tRoot->fService.htTree) {
+		while (i < gdefSVFunctions_MAX)
+		{
+			tmp.str = gszSVFunctions[i++];
+			tmp.htTree = this->m_PVTree->InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}	//IF END：服务区初始化
 	return;
 }
 
@@ -138,6 +154,8 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 		OutputDebugString(_T("\tDo搜索文件\n"));
 		CString strPath;	UINT deep = tInfo.uiDeep;	//初始化路径和深度
 		GetTreePath(tInfo.htTree, deep, strPath);		//通过树干获取路径
+		CEditView* edit = (CEditView*)m_Main->GetDlgItem(IDC_EDIT1);
+		edit->SetWindowTextW(strPath);					//将路径设置为编辑框
 		vector<FILEINFO> FLs;							//初始化数组
 
 
@@ -211,6 +229,28 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 				this->InitList(hwndInfos);
 		}
 	}	//IF END：窗口信息处理
+	else if (tInfo.hrTree == this->m_tRoot->fRubbish.htTree	//如果树根为垃圾
+		&& tInfo.uiDeep == 1) {								//且深度==1
+		unsigned char idx = 0;
+		if (tInfo.str == gszRBFunctions[gdsz_系统垃圾清理])
+			idx = 0;
+		else if (tInfo.str == gszRBFunctions[gdsz_IE垃圾清理])
+			idx = 1;
+		else if (tInfo.str == gszRBFunctions[gdsz_VS垃圾清理])
+			idx = 2;
+		system(gszRBcmd[idx]);
+	}	//IF END：垃圾信息处理
+	else if (tInfo.hrTree == this->m_tRoot->fService.htTree	//如果树根为垃圾
+		&& tInfo.uiDeep == 1) {								//且深度==1
+		if (tInfo.str == gszSVFunctions[gdsz_枚举服务]) {
+			vector<SERVICEINFO> serviceInfos;
+			CMyServer cServer;
+			if (cServer.EnumServer(serviceInfos)) {
+				this->InitList(serviceInfos);
+			}
+			cServer.CleanHeap();
+		}
+	}	//IF END：服务信息处理
 	return;
 }
 
@@ -285,7 +325,7 @@ void CMyView::InitList(const MyTreeInfo& tInfo)
 			m_PVList->InsertColumn(0, _T("PID"), LVCFMT_CENTER, 77);
 		}
 	}	//IF END：模块信息集
-	else if (tInfo.hrTree == this->m_tRoot->fHwnd.htTree	//如果树根为模块
+	else if (tInfo.hrTree == this->m_tRoot->fHwnd.htTree	//如果树根为窗口
 		&& tInfo.uiDeep == 1) {
 		if (tInfo.str == gszHWFunctions[0]) {	//枚举
 			m_PVList->InsertColumn(0, _T("窗口类名"), LVCFMT_CENTER, 100);
@@ -293,6 +333,15 @@ void CMyView::InitList(const MyTreeInfo& tInfo)
 			m_PVList->InsertColumn(0, _T("窗口句柄"), LVCFMT_CENTER, 100);
 		}
 	}	//IF END：窗口信息集
+	else if (tInfo.hrTree == this->m_tRoot->fService.htTree	//如果树根服务
+		&& tInfo.uiDeep == 1) {
+		if (tInfo.str == gszSVFunctions[0]) {	//枚举
+			m_PVList->InsertColumn(0, _T("服务类型"), LVCFMT_CENTER, 123);
+			m_PVList->InsertColumn(0, _T("服务状态"), LVCFMT_CENTER, 123);
+			m_PVList->InsertColumn(0, _T("服务名称"), LVCFMT_CENTER, 321);
+			m_PVList->InsertColumn(0, _T("PID"), LVCFMT_CENTER, 100);
+		}
+	}	//IF END：服务信息集
 	m_PVList->InsertColumn(0, _T("序"), LVCFMT_CENTER, 50);
 }
 
@@ -302,7 +351,7 @@ void CMyView::InitList(vector<FILEINFO>& FLs)
 	size_t max = FLs.size(), i = max;
 	if (max == 0)	return;
 	this->m_PVList->DeleteAllItems();
-	CString str;	FILEINFO* fl = nullptr;
+	FILEINFO* fl = nullptr;
 	TCHAR buff[MAX_PATH];	int count = (int)max;
 	for (i = max, fl = &FLs[max - 1]; i--; --fl) {
 		if (fl->Size) {
@@ -409,6 +458,39 @@ void CMyView::InitList(vector<HWND>& HWs)
 		if (GetClassNameW(*hwnds, buff, MAX_PATH))
 			this->m_PVList->SetItemText(0, 3, buff);
 		--hwnds;
+	}
+	this->m_PVList->ShowWindow(SW_SHOW);
+}
+
+/*
+	函数：向列表框加入服务信息
+	作者：CO0kie丶
+	时间：2020-11-02_16-45
+*/
+void CMyView::InitList(vector<SERVICEINFO>& SVs)
+{
+	size_t max = SVs.size(), i = max;
+	if (max-- == 0)	return;
+	this->m_PVList->ShowWindow(SW_HIDE);
+	//WCHAR buff[MAX_PATH];
+	LPSERVICEINFO service = &SVs[max];
+	while (i)
+	{
+		m_str.Format(_T("%llu"), i--);
+		this->m_PVList->InsertItem(0, m_str);
+
+		if (service->PID) {
+			m_str.Format(_T("%lu"), service->PID);
+			this->m_PVList->SetItemText(0, 1, m_str);
+		}
+		this->m_PVList->SetItemText(0, 2, service->lpDisplayName);
+
+		if(service->pCurrentState)
+			this->m_PVList->SetItemText(0, 3, service->pCurrentState);
+		if(service->pServiceType)
+			this->m_PVList->SetItemText(0, 4, service->pServiceType);
+
+		--service;
 	}
 	this->m_PVList->ShowWindow(SW_SHOW);
 }

@@ -155,6 +155,7 @@
     <ClInclude Include="CInclude.h" />
     <ClInclude Include="CMyFile.h" />
     <ClInclude Include="CMyHwnd.h" />
+    <ClInclude Include="CMyServer.h" />
     <ClInclude Include="CPE.h" />
     <ClInclude Include="CMyProcess.h" />
     <ClInclude Include="framework.h" />
@@ -165,6 +166,7 @@
     <ClCompile Include="CApi.cpp" />
     <ClCompile Include="CMyFile.cpp" />
     <ClCompile Include="CMyHwnd.cpp" />
+    <ClCompile Include="CMyServer.cpp" />
     <ClCompile Include="CPE.cpp" />
     <ClCompile Include="CMyProcess.cpp" />
     <ClCompile Include="dllmain.cpp" />
