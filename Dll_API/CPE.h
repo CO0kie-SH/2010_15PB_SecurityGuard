@@ -2,7 +2,15 @@
 #include "CInclude.h"
 
 #define		gdefPEFunctions_MAX		0x0B
-#define		gdefPEHeadInfos_MAX		0x10
+#define		gdefNTHeadInfos_MAX		0x10
+
+enum _EnumPE功能区
+{
+	gdsz_PE文件头,
+	gdsz_PE区段信息
+};
+
+
 
 constexpr	PTCHAR	gszPEFunctions[] = {
 	(PTCHAR)_T("PE文件头"),
@@ -81,19 +89,19 @@ enum IDXPEINFO
 
 typedef struct _NTHead_INFO
 {
-	DWORD	dwPEHead[16] = { 0 };
+	DWORD	dwPEHead[16];
 	//char* szPEHead[16] = {}
-	ULONGLONG   x64ImageBase = 0;
+	ULONGLONG   x64ImageBase;
 }NTHead_INFO, * LPNTHead_INFO;
 
 class DLLexp CPE
 {
 public:
-	CPE(char* pFile, ULONGLONG fileSize);
-	CPE(char* pFilePath);
+	CPE();
 	~CPE();
-
-	BOOL	isPE(char* lpImage);
+	BOOL	Init(char* pFilePath);
+	BOOL	Init(PTCHAR pFilePath);
+	BOOL	IsPE(char* lpImage);
 	BOOL	GetNTHeadInfo();
 	DWORD	RvaToFoa(DWORD dwRva, bool isPrint = false);
 	//PTCHAR	GetNTHeadTCHAR(BYTE i);

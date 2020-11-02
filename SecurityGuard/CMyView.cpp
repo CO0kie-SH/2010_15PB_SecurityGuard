@@ -146,10 +146,10 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 	};
 
 
-	if (tInfo.hrTree == this->m_tRoot->fFile.htTree	//如果树根为文件
-		&& tInfo.uiDeep > 0) {						//且深度>0
-		if (m_PVTree->ItemHasChildren(hTree))		//如果该叶子节点有内容
-			return;									//则返回
+	if (tInfo.hrTree == this->m_tRoot->fFile.htTree		//如果树根为文件
+		&& tInfo.uiDeep > 0) {							//且深度>0
+		if (m_PVTree->ItemHasChildren(hTree))			//如果该叶子节点有内容
+			return;										//则返回
 
 		OutputDebugString(_T("\tDo搜索文件\n"));
 		CString strPath;	UINT deep = tInfo.uiDeep;	//初始化路径和深度
@@ -162,40 +162,31 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 			strPath.GetBuffer(), _T("*"));
 		if (bSearchSucc)
 		{
-			this->InitList(FLs);		//向列表控件添加数据
-			size_t max = FLs.size();	//初始化大小
-			LPFILEINFO pInfo = &FLs[0];	//初始化循环指针
+			this->InitList(FLs);					//向列表控件添加数据
+			size_t max = FLs.size();				//初始化大小
+			LPFILEINFO pInfo = &FLs[0];				//初始化循环指针
 			for (i = 0; i < max; ++i, ++pInfo)
 			{
+				if (!pInfo->isDir)	continue;
 				tmp.htTree = m_PVTree->InsertItem(
 					pInfo->data.cFileName, hTree);
 				m_tLeafs[tmp.htTree] = tmp;
 			}
-			m_PVTree->Expand(hTree, TVE_EXPAND);	//循环完毕后展开树枝
+			m_PVTree->Expand(hTree, TVE_EXPAND);			//循环完毕后展开树枝
 		}
 	}	//IF END：向文件功能区添加目录
-	else if (tInfo.hrTree == this->m_tRoot->fPE.htTree	//如果树根为PE
-		&& tInfo.uiDeep == 1) {							//且深度==1
-		//处理，表明PE被点击，增加List数据
-		CPE* pcPE = nullptr;
-		if (tInfo.str == gszPEFunctions[0]) {		//PE头
-			pcPE = new CPE(DLLP32);
-			if (pcPE->GetNTHeadInfo())
-				this->InitList(pcPE->NTHead_Info);
-			pcPE->~CPE();
-			pcPE = new CPE(DLLP64);
-			if (pcPE->GetNTHeadInfo())
-				this->InitList(pcPE->NTHead_Info, false);
-		}
-		else if (tInfo.str == gszPEFunctions[1]) {	//区段信息
-			pcPE = new CPE(DLLP32);
-			pcPE->RvaToFoa(0, true);
-			pcPE->~CPE();
-			pcPE = new CPE(DLLP64);
-			pcPE->RvaToFoa(0, true);
-		}
+	else if (tInfo.hrTree == this->m_tRoot->fPE.htTree		//如果树根为PE
+		&& tInfo.uiDeep == 1) {								//且深度==1
 
-		if (pcPE)	pcPE->~CPE();
+		if (tInfo.str == gszPEFunctions[gdsz_PE文件头]) {
+			m_CPE.Init(DLLP32);
+			if (m_CPE.GetNTHeadInfo()) {
+				this->InitList(m_CPE.NTHead_Info);
+			}
+		}
+		else if (tInfo.str == gszPEFunctions[gdsz_PE区段信息]) {
+			
+		}
 	}	//IF END：PE信息处理
 	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree	//如果树根为进程
 		&& tInfo.uiDeep == 1) {								//且深度==1
@@ -279,46 +270,49 @@ BOOL CMyView::GetTreePath(const HTREEITEM& htTree,
 */
 void CMyView::InitList(const MyTreeInfo& tInfo)
 {
-	if (tInfo.hrTree == this->m_Statu.tKind.hrTree)	return;		//如果相同则返回
-	this->m_Statu.tKind.htTree = tInfo.htTree;
-	this->m_Statu.tKind.hrTree = tInfo.hrTree;
-	m_PVList->DeleteAllItems();
-	while (m_PVList->DeleteColumn(0));
+	if (tInfo.hrTree == this->m_Statu.tKind.hrTree)		//如果树根相同则返回
+		return;
+	this->m_Statu.tKind = tInfo;						//将新信息赋值给当前状态
 
-	m_PVList->InsertColumn(0, _T("备注"), LVCFMT_CENTER, 123);
-	if (tInfo.hrTree == this->m_tRoot->fFile.htTree) {		//如果树根为文件
+	while (m_PVList->DeleteColumn(0));					//清空列
+	m_PVList->DeleteAllItems();							//清空行
+
+	m_PVList->InsertColumn(0, _T("备注"), LVCFMT_CENTER, 123);	//增加备注
+	if (tInfo.hrTree == this->m_tRoot->fFile.htTree) {			//如果树根为文件
 		m_PVList->InsertColumn(0, _T("修改时间"), LVCFMT_CENTER, 222);
 		m_PVList->InsertColumn(0, _T("创建时间"), LVCFMT_CENTER, 222);
 		m_PVList->InsertColumn(0, _T("文件名"), LVCFMT_CENTER, 222);
 		m_PVList->InsertColumn(0, _T("大小"), LVCFMT_CENTER, 88);
 	}	//IF END：文件信息集
-	else if (tInfo.hrTree == this->m_tRoot->fPE.htTree		//如果树根为PE
-		&& tInfo.uiDeep == 1) {
-		if (tInfo.str == gszPEFunctions[0]) {	//NT头
+	else if (tInfo.hrTree == this->m_tRoot->fPE.htTree			//如果树根为PE
+		&& tInfo.uiDeep == 1) {									//且深度为1
+		if (tInfo.str == gszPEFunctions[gdsz_PE文件头] ||		//NT头
+			tInfo.str == gszPEFunctions[gdsz_PE区段信息]			//区段信息
+			) {	
 			m_PVList->InsertColumn(0, _T("配置值"), LVCFMT_CENTER, 123);
 			m_PVList->InsertColumn(0, _T("配置项"), LVCFMT_CENTER, 150);
 		}
 	}	//IF END：PE信息集
-	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree	//如果树根为进程
+	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree		//如果树根为进程
 		&& tInfo.uiDeep == 1) {
-		if (tInfo.str == gszPCFunctions[0]) {	//枚举
+		if (tInfo.str == gszPCFunctions[0]) {
 			m_PVList->InsertColumn(0, _T("进程名"), LVCFMT_CENTER, 222);
 			m_PVList->InsertColumn(0, _T("线程数"), LVCFMT_CENTER, 77);
 			m_PVList->InsertColumn(0, _T("本进程"), LVCFMT_CENTER, 77);
 			m_PVList->InsertColumn(0, _T("父进程"), LVCFMT_CENTER, 77);
 		}
 	}	//IF END：进程信息集
-	else if (tInfo.hrTree == this->m_tRoot->fThread.htTree	//如果树根为线程
+	else if (tInfo.hrTree == this->m_tRoot->fThread.htTree		//如果树根为线程
 		&& tInfo.uiDeep == 1) {
-		if (tInfo.str == gszTHFunctions[0]) {	//枚举
+		if (tInfo.str == gszTHFunctions[0]) {
 			m_PVList->InsertColumn(0, _T("优先级"), LVCFMT_CENTER, 77);
 			m_PVList->InsertColumn(0, _T("TID"), LVCFMT_CENTER, 77);
 			m_PVList->InsertColumn(0, _T("PID"), LVCFMT_CENTER, 77);
 		}
 	}	//IF END：线程信息集
-	else if (tInfo.hrTree == this->m_tRoot->fModdle.htTree	//如果树根为模块
+	else if (tInfo.hrTree == this->m_tRoot->fModdle.htTree		//如果树根为模块
 		&& tInfo.uiDeep == 1) {
-		if (tInfo.str == gszMDFunctions[0]) {	//枚举
+		if (tInfo.str == gszMDFunctions[0]) {
 			m_PVList->InsertColumn(0, _T("模块路径"), LVCFMT_CENTER, 188);
 			m_PVList->InsertColumn(0, _T("模块名称"), LVCFMT_CENTER, 188);
 			m_PVList->InsertColumn(0, _T("模块大小"), LVCFMT_CENTER, 100);
@@ -326,17 +320,17 @@ void CMyView::InitList(const MyTreeInfo& tInfo)
 			m_PVList->InsertColumn(0, _T("PID"), LVCFMT_CENTER, 77);
 		}
 	}	//IF END：模块信息集
-	else if (tInfo.hrTree == this->m_tRoot->fHwnd.htTree	//如果树根为窗口
+	else if (tInfo.hrTree == this->m_tRoot->fHwnd.htTree		//如果树根为窗口
 		&& tInfo.uiDeep == 1) {
-		if (tInfo.str == gszHWFunctions[0]) {	//枚举
+		if (tInfo.str == gszHWFunctions[0]) {
 			m_PVList->InsertColumn(0, _T("窗口类名"), LVCFMT_CENTER, 100);
 			m_PVList->InsertColumn(0, _T("窗口名称"), LVCFMT_CENTER, 200);
 			m_PVList->InsertColumn(0, _T("窗口句柄"), LVCFMT_CENTER, 100);
 		}
 	}	//IF END：窗口信息集
-	else if (tInfo.hrTree == this->m_tRoot->fService.htTree	//如果树根服务
+	else if (tInfo.hrTree == this->m_tRoot->fService.htTree		//如果树根服务
 		&& tInfo.uiDeep == 1) {
-		if (tInfo.str == gszSVFunctions[0]) {	//枚举
+		if (tInfo.str == gszSVFunctions[0]) {
 			m_PVList->InsertColumn(0, _T("服务类型"), LVCFMT_CENTER, 123);
 			m_PVList->InsertColumn(0, _T("服务状态"), LVCFMT_CENTER, 123);
 			m_PVList->InsertColumn(0, _T("服务名称"), LVCFMT_CENTER, 321);

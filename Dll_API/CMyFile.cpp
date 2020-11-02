@@ -48,10 +48,10 @@ BOOL CMyFile::SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path, PTCHAR pFileType /
 			fl.Size = FindData.nFileSizeLow;		//获取文件大小
 			fl.Size |= (((__int64)FindData.nFileSizeHigh) << 32);
 		}
-		wsprintf(buff, _T("%s\t%s\n"), fl.Size ?
-			_T("  件夹") : _T("文件夹"), FindData.cFileName);
-		OutputDebugString(buff);
 		FLs.push_back(fl);
+		wsprintf(buff, _T("%s\t%s\n"), fl.isDir ?
+			_T("文件夹") : _T("文件"), FindData.cFileName);
+		OutputDebugString(buff);
 	} while (FindNextFile(FindHandle, &FindData));
 	FindClose(FindHandle);
 	return (int)FLs.size();

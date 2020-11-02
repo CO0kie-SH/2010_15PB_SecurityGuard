@@ -5,21 +5,10 @@
 
 #pragma region 类内函数区
 
-CPE::CPE(char* pFilePath)
+CPE::CPE() :FOA(0), is32o64(0)
 {
-	_pFile = (char*)GetFilePtr(pFilePath, _FileSize);
-	if (isPE(_pFile)) {
-		this->FOA = (SIZE_T)_pFile;
-	}
+	ZeroMemory(&NTHead_Info, sizeof(NTHead_INFO));
 }
-
-CPE::CPE(char* pFile, ULONGLONG fileSize)
-{
-	if (isPE(pFile)) {
-		this->FOA = (SIZE_T)pFile;
-	}
-}
-
 
 
 CPE::~CPE()
@@ -28,13 +17,36 @@ CPE::~CPE()
 		HeapFree(GetProcessHeap(), 0, _pFile);
 }
 
+BOOL CPE::Init(char* pFilePath)
+{
+	if (_pFile)
+		HeapFree(GetProcessHeap(), 0, _pFile);
+	_pFile = (char*)GetFilePtr(pFilePath, this->_FileSize);
+	if (_pFile == nullptr)	return false;
+	if (IsPE(_pFile))
+		return true;
+	HeapFree(GetProcessHeap(), 0, _pFile);
+	_pFile = nullptr;
+	return false;
+}
+
+BOOL CPE::Init(PTCHAR pFilePath)
+{
+	char buff[512];
+	size_t len = 0;
+	wcstombs_s(&len, buff, pFilePath, 512);
+	if (len == 0)
+		return false;
+	return Init(buff);
+}
+
 /*
 	函数：获取判断文件是否为PE文件
 	返回：返回TRUE或FALSE
 	作者：CO0kie丶
 	时间：2020-10-30_15-20
 */
-BOOL CPE::isPE(char* lpImage)
+BOOL CPE::IsPE(char* lpImage)
 {
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)lpImage;
 	if (pDos == nullptr) {
@@ -47,7 +59,7 @@ BOOL CPE::isPE(char* lpImage)
 		PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)(pDos->e_lfanew + lpImage);
 		if (pNt->Signature == IMAGE_NT_SIGNATURE)
 		{
-			_pNt = pNt;
+			_pNt = pNt;	FOA = (ULONGLONG)lpImage;
 			return true;
 		}
 	}

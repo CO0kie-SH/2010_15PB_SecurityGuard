@@ -45,7 +45,7 @@ typedef struct _MyFunction		//结构体[支持的功能区索引]
 typedef struct _WindStatu		//结构体[当前视图状态]
 {
 	MyTreeInfo	tKind;			//定义当前树控件的选项
-	CPE*		LPCPE	= nullptr;		//定义一个PE类
+	PCHAR		pFilePath = nullptr;	//定义文件路径
 }WindStatu, * PWindStatu;
 
 class CMyView
@@ -83,7 +83,8 @@ public:
 
 protected:
 	WindStatu	m_Statu;				//视图状态
-	CMyFile		m_CFile;				//文件
+	CMyFile		m_CFile;				//文件类
+	CPE			m_CPE;					//PE类
 	CMyProcess	m_CProcess;
 	CMyServer	m_CServices;
 	vector<SERVICEINFO> m_serviceInfos;	//服务信息

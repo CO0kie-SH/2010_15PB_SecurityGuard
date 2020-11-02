@@ -94,6 +94,8 @@ typedef struct tagTHREADENTRY32
 			if (dwPid > 0 &&
 				dwPid != ThreadInfo.th32OwnerProcessID)
 				continue;
+			else if (ThreadInfo.th32ThreadID == 0)
+				continue;
 			tmp = THREADINFO{
 				ThreadInfo.th32ThreadID,
 				ThreadInfo.th32OwnerProcessID,

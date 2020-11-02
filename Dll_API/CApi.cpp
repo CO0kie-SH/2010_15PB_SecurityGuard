@@ -86,6 +86,8 @@ DWORD GetMd5_ByCertutil(char* pPath, char md5[33])
 	CloseHandle(hPipeOutputWrite);
 	return (DWORD)ullsysTime;
 }
+
+
 /*
 	函数：打开文件，并得到文件指针
 	返回：成功返回[进程默认堆]创建的内存指针，否则为nullptr
@@ -108,18 +110,18 @@ void* GetFilePtr(char* pPath, __int64& pSize, char* strSize /*= nullptr*/)
 		CloseHandle(handle);
 		ExitProcess(defExitID无法解析大文件);
 	}
-	qwFileSize |= (((__int64)dwFileSize) << 32);	//左移32位得到高位大小
+	//qwFileSize |= (((__int64)dwFileSize) << 32);	//左移32位得到高位大小
 	if (qwFileSize == 0)		//判断文件大小
 		return nullptr;			//为0则返回
 	pSize = qwFileSize;			//通过实参返回文件大小
 
 	if (strSize) {					//如果传入实参str，则保存str
-		char buff[33];	buff[32] = '\0';
+		char buff[33] = {0};
 		PSTR pstr = StrFormatByteSize64A(qwFileSize, buff, 32);
 		wsprintfA(strSize, "%s", pstr);
 	}
 	HANDLE	hHeap = GetProcessHeap();	//获取默认堆
-	LPVOID	lpMem = HeapAlloc(hHeap, HEAP_GENERATE_EXCEPTIONS, qwFileSize);
+	LPVOID	lpMem = HeapAlloc(hHeap, 0, qwFileSize);
 	if (!lpMem) {
 		MessageBoxA(0, "分配堆空间失败\n", 0, 0);
 	}
@@ -133,7 +135,7 @@ void* GetFilePtr(char* pPath, __int64& pSize, char* strSize /*= nullptr*/)
 	}
 	CloseHandle(handle);
 	HeapFree(hHeap, 0, lpMem);	lpMem = nullptr;
-	return lpMem;
+	return nullptr;
 }
 #pragma endregion
 
