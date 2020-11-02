@@ -20,9 +20,9 @@ CMyServer::~CMyServer()
 	作者：CO0kie丶
 	时间：2020-11-02_14-40
 */
-BOOL CMyServer::EnumServer(vector< SERVICEINFO>& serviceInfos, bool bEx /*= true*/)
+BOOL CMyServer::EnumServices(vector< SERVICEINFO>& serviceInfos, bool bEx /*= true*/)
 {
-	this->CleanHeap();
+	this->CleanHeap();	serviceInfos.clear();
 	SC_HANDLE hSCM = OpenSCManager(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
 	if (NULL == hSCM)  return false;
 	
@@ -78,22 +78,35 @@ typedef struct _ENUM_SERVICE_STATUS_PROCESSW {
 			tmp.PID = svStatu.dwProcessId;
 
 			if (bEx) {											//获取额外信息
-				PTCHAR& ptr = pEnumServices[i].lpDisplayName;	//引用字符串
-				len = (DWORD)(_tcslen(ptr) + 1);				//获取字符串长度
+				PTCHAR& ptrS = pEnumServices[i].lpServiceName;	//引用字符串
+				len = (DWORD)(_tcslen(ptrS) + 1);				//获取字符串长度
+				len *= sizeof(TCHAR);
+
+				tmp.lpServiceName = (PTCHAR)HeapAlloc(
+					this->_hHeap, HEAP_ZERO_MEMORY, len);		//申请堆空间
+				if (tmp.lpServiceName) {
+					++this->_dwHeapAlloc;
+					memcpy_s(tmp.lpServiceName, len, ptrS, len);//格式化字符串
+				}
+
+
+				PTCHAR& ptrD = pEnumServices[i].lpDisplayName;	//引用字符串
+				len = (DWORD)(_tcslen(ptrD) + 1);				//获取字符串长度
 				len *= sizeof(TCHAR);
 
 				tmp.lpDisplayName = (PTCHAR)HeapAlloc(
 					this->_hHeap, HEAP_ZERO_MEMORY, len);		//申请堆空间
 				if (tmp.lpDisplayName) {
 					++this->_dwHeapAlloc;
-					memcpy_s(tmp.lpDisplayName, len, ptr, len);		//格式化字符串
+					memcpy_s(tmp.lpDisplayName, len, ptrD, len);//格式化字符串
 				}
 
-				this->GetServerString(&tmp);
+				this->GetServiceString(&tmp);
 			}
 			serviceInfos.push_back(tmp);
 		} while (++i < dwServiceNum);
 	}
+	CloseServiceHandle(hSCM);
 	HeapFree(this->_hHeap, 0, pEnumServices);
 	return !serviceInfos.empty();
 }
@@ -104,7 +117,7 @@ typedef struct _ENUM_SERVICE_STATUS_PROCESSW {
 	作者：CO0kie丶
 	时间：2020-11-02_16-30
 */
-void CMyServer::GetServerString(LPSERVICEINFO serviceInfo)
+void CMyServer::GetServiceString(LPSERVICEINFO serviceInfo)
 {
 	DWORD& dwServiceType = serviceInfo->ServiceStatus[0];
 	DWORD& dwCurrentState = serviceInfo->ServiceStatus[1];
@@ -155,6 +168,50 @@ void CMyServer::GetServerString(LPSERVICEINFO serviceInfo)
 		serviceInfo->pCurrentState = nullptr;
 		break;
 	}
+}
+
+
+//https://www.cnblogs.com/cposture/p/4717546.html
+BOOL CMyServer::StartServiceMy(const LPSERVICEINFO serviceInfo)
+{
+	
+	return FALSE;
+}
+BOOL CMyServer::OpenServiceMy(const LPSERVICEINFO serviceInfo)
+{
+	SC_HANDLE hSCM = OpenSCManager(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
+	if (NULL == hSCM)  return false;
+	SC_HANDLE hService = OpenService(hSCM,
+		serviceInfo->lpServiceName, SERVICE_PAUSE_CONTINUE);
+	bool bRet = hService != NULL;
+	if (bRet) {
+		SERVICE_STATUS ServiceStatus = { 0 };
+		bRet = ControlService(hService, SERVICE_CONTROL_CONTINUE, &ServiceStatus);
+		CloseServiceHandle(hService);
+		if (!bRet) {
+			hService = OpenService(hSCM,
+				serviceInfo->lpServiceName, SERVICE_START);
+			bRet = StartService(hService, 0, NULL);
+			CloseServiceHandle(hService);
+		}
+	}
+	CloseServiceHandle(hSCM);
+	return bRet;
+}
+BOOL CMyServer::StopService(const LPSERVICEINFO serviceInfo)
+{
+	SC_HANDLE hSCM = OpenSCManager(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
+	if (NULL == hSCM)  return false;
+	SC_HANDLE hService = OpenService(hSCM,
+		serviceInfo->lpServiceName, SERVICE_STOP);
+	bool bRet = hService != NULL;
+	if (bRet) {
+		SERVICE_STATUS ServiceStatus = { 0 };
+		bRet = ControlService(hService, SERVICE_CONTROL_STOP, &ServiceStatus);
+		CloseServiceHandle(hService);
+	}
+	CloseServiceHandle(hSCM);
+	return bRet;
 }
 #pragma endregion
 

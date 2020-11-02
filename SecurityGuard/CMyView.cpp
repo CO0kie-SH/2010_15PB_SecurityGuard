@@ -243,16 +243,14 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 	else if (tInfo.hrTree == this->m_tRoot->fService.htTree	//如果树根为垃圾
 		&& tInfo.uiDeep == 1) {								//且深度==1
 		if (tInfo.str == gszSVFunctions[gdsz_枚举服务]) {
-			vector<SERVICEINFO> serviceInfos;
-			CMyServer cServer;
-			if (cServer.EnumServer(serviceInfos)) {
-				this->InitList(serviceInfos);
+			if (m_CServices.EnumServices(m_serviceInfos)) {
+				this->InitList(m_serviceInfos);
 			}
-			cServer.CleanHeap();
 		}
 	}	//IF END：服务信息处理
 	return;
 }
+
 
 /*
 	函数：遍历树控件

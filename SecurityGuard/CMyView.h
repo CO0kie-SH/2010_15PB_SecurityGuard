@@ -50,6 +50,7 @@ typedef struct _WindStatu		//结构体[当前视图状态]
 
 class CMyView
 {
+	friend class CController;
 public:
 	CMyView();
 	~CMyView();
@@ -81,9 +82,11 @@ public:
 
 
 protected:
+	WindStatu	m_Statu;				//视图状态
 	CMyFile		m_CFile;				//文件
 	CMyProcess	m_CProcess;
-	WindStatu	m_Statu;				//视图状态
+	CMyServer	m_CServices;
+	vector<SERVICEINFO> m_serviceInfos;	//服务信息
 private:
 	CDialogEx*	m_Main	 = nullptr;		//主窗口
 	CTreeCtrl*	m_PVTree = nullptr;		//树控件

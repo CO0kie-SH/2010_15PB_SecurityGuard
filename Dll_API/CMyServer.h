@@ -40,6 +40,7 @@ typedef struct _SERVICEINFO {	//结构体[服务信息]
 	//SERVICE_STATUS_PROCESS ServiceStatusProcess;
 	DWORD	ServiceStatus[9];
 	DWORD	PID;
+	PTCHAR	lpServiceName;
 	PTCHAR	lpDisplayName;
 	PTCHAR	pServiceType;
 	PTCHAR	pCurrentState;
@@ -52,9 +53,11 @@ public:
 	CMyServer();
 	~CMyServer();
 
-	BOOL EnumServer(vector< SERVICEINFO>& serviceInfos, bool bEx = true);
-	void GetServerString(LPSERVICEINFO serviceInfo);
-
+	BOOL EnumServices(vector< SERVICEINFO>& serviceInfos, bool bEx = true);
+	void GetServiceString(LPSERVICEINFO serviceInfo);
+	BOOL StartServiceMy(const LPSERVICEINFO serviceInfo);
+	BOOL OpenServiceMy(const LPSERVICEINFO serviceInfo);
+	BOOL StopService(const LPSERVICEINFO serviceInfo);
 
 
 	void CleanHeap() {

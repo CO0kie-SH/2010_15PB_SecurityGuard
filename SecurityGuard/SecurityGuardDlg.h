@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "CMyView.h"
+#include "CController.h"
 
 // CSecurityGuardDlg 对话框
 class CSecurityGuardDlg : public CDialogEx
@@ -33,4 +33,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnNMRClickList1(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnClickMenu();
+	afx_msg void OnClickMenu(UINT nID);
 };

@@ -66,6 +66,9 @@ BEGIN_MESSAGE_MAP(CSecurityGuardDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_NOTIFY(NM_DBLCLK, IDC_TREE1, &CSecurityGuardDlg::OnNMDblclkTree1)
+	ON_NOTIFY(NM_RCLICK, IDC_LIST1, &CSecurityGuardDlg::OnNMRClickList1)
+	//ON_COMMAND(ID_32774, &CSecurityGuardDlg::OnClickMenu)
+	ON_COMMAND_RANGE(ID_32772,ID_32776, &CSecurityGuardDlg::OnClickMenu)
 END_MESSAGE_MAP()
 
 
@@ -175,4 +178,28 @@ void CSecurityGuardDlg::OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult)
 			gView.DoSomeThingTree(hLeaf);
 	}
 	*pResult = 0;
+}
+
+
+
+void CSecurityGuardDlg::OnNMRClickList1(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	*pResult = 0;
+	if (pNMItemActivate->iItem == -1)	return;
+	gCtrl.DoSomeThingList(pNMItemActivate);
+}
+
+
+void CSecurityGuardDlg::OnClickMenu()
+{
+	// TODO: 在此添加命令处理程序代码
+}
+
+
+void CSecurityGuardDlg::OnClickMenu(UINT nID)
+{
+	// TODO: 在此添加命令处理程序代码
+	gCtrl.DoSomeMenu(nID);
 }
