@@ -1,7 +1,7 @@
 #pragma once
 #include "CInclude.h"
 
-#define		gdefSVFunctions_MAX		0x03
+#define		gdefSVFunctions_MAX		0x01
 
 
 enum _Enum服务功能区

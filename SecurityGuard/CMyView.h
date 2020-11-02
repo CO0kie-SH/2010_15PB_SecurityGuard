@@ -44,7 +44,7 @@ typedef struct _MyFunction		//结构体[支持的功能区索引]
 
 typedef struct _WindStatu		//结构体[当前视图状态]
 {
-	HTREEITEM	tKind	= nullptr;		//定义当前树控件的选项
+	MyTreeInfo	tKind;			//定义当前树控件的选项
 	CPE*		LPCPE	= nullptr;		//定义一个PE类
 }WindStatu, * PWindStatu;
 

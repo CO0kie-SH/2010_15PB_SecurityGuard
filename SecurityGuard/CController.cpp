@@ -21,7 +21,7 @@ CController::~CController()
 */
 void CController::DoSomeThingList(LPNMITEMACTIVATE& pNMItem)
 {
-	if (gView.m_Statu.tKind == gView.m_tRoot->fService.htTree) {
+	if (gView.m_Statu.tKind.hrTree == gView.m_tRoot->fService.htTree) {
 		POINT xy = { pNMItem->ptAction.x, pNMItem->ptAction.y };
 		gView.m_PVList->ClientToScreen(&xy);
 
@@ -52,7 +52,8 @@ void CController::DoSomeMenu(UINT nID)
 				this->_lpServiceInfo)) {
 				gView.m_PVList->DeleteAllItems();
 				MessageBox(gView.m_Main->GetSafeHwnd(),
-					_T("启动成功，请刷新页面。"), _T("服务操作成功"), 0);
+					_T("启动成功。"), _T("服务操作成功"), 0);
+				gView.DoSomeThingTree(gView.m_Statu.tKind.htTree);
 			}
 		break;
 	case ID_32775:		//关闭服务
@@ -61,7 +62,8 @@ void CController::DoSomeMenu(UINT nID)
 				this->_lpServiceInfo)) {
 				gView.m_PVList->DeleteAllItems();
 				MessageBox(gView.m_Main->GetSafeHwnd(),
-					_T("关闭成功，请刷新页面。"), _T("服务操作成功"), 0);
+					_T("关闭成功。"), _T("服务操作成功"), 0);
+				gView.DoSomeThingTree(gView.m_Statu.tKind.htTree);
 			}
 		break;
 	default:

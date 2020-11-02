@@ -277,8 +277,9 @@ BOOL CMyView::GetTreePath(const HTREEITEM& htTree,
 */
 void CMyView::InitList(const MyTreeInfo& tInfo)
 {
-	if (tInfo.hrTree == this->m_Statu.tKind)	return;		//如果相同则返回
-	this->m_Statu.tKind = tInfo.hrTree;
+	if (tInfo.hrTree == this->m_Statu.tKind.hrTree)	return;		//如果相同则返回
+	this->m_Statu.tKind.htTree = tInfo.htTree;
+	this->m_Statu.tKind.hrTree = tInfo.hrTree;
 	m_PVList->DeleteAllItems();
 	while (m_PVList->DeleteColumn(0));
 
@@ -402,6 +403,7 @@ void CMyView::InitList(vector<THREADINFO>& THs)
 	size_t max = THs.size(), i = max;
 	if (max-- == 0)	return;
 	LPTHREADINFO th = &THs[max];
+	this->m_PVList->ShowWindow(SW_HIDE);
 	while (i)
 	{
 		m_str.Format(_T("%llu"), i--);
@@ -414,6 +416,7 @@ void CMyView::InitList(vector<THREADINFO>& THs)
 		this->m_PVList->SetItemText(0, 3, m_str);
 		--th;
 	}
+	this->m_PVList->ShowWindow(SW_SHOW);
 }
 
 
