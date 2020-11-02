@@ -4,6 +4,7 @@
 #include "CMyFile.h"
 #include "CPE.h"
 #include "CMyProcess.h"
+#include "CMyHwnd.h"
 
 
 #define defExitID程序正常退出			0x0000;

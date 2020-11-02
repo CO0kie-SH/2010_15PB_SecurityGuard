@@ -101,6 +101,14 @@ void CMyView::Init(const HTREEITEM& hTree)
 			m_tLeafs[tmp.htTree] = tmp;
 		}
 	}	//IF END：模块区初始化
+	else if (hTree == this->m_tRoot->fHwnd.htTree) {
+		while (i < gdefHWFunctions_MAX)
+		{
+			tmp.str = gszHWFunctions[i++];
+			tmp.htTree = this->m_PVTree->InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}	//IF END：窗口区初始化
 	return;
 }
 
@@ -194,6 +202,15 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 				this->InitList(mdInfos);
 		}
 	}	//IF END：模块信息处理
+	else if (tInfo.hrTree == this->m_tRoot->fHwnd.htTree	//如果树根为窗口
+		&& tInfo.uiDeep == 1) {								//且深度==1
+		if (tInfo.str == gszHWFunctions[gdsz_枚举窗口]) {		//枚举模块
+			vector<HWND> hwndInfos;
+			CMyHwnd cHwnd;
+			if (cHwnd.EnumWindow(&hwndInfos))
+				this->InitList(hwndInfos);
+		}
+	}	//IF END：窗口信息处理
 	return;
 }
 
@@ -268,6 +285,14 @@ void CMyView::InitList(const MyTreeInfo& tInfo)
 			m_PVList->InsertColumn(0, _T("PID"), LVCFMT_CENTER, 77);
 		}
 	}	//IF END：模块信息集
+	else if (tInfo.hrTree == this->m_tRoot->fHwnd.htTree	//如果树根为模块
+		&& tInfo.uiDeep == 1) {
+		if (tInfo.str == gszHWFunctions[0]) {	//枚举
+			m_PVList->InsertColumn(0, _T("窗口类名"), LVCFMT_CENTER, 100);
+			m_PVList->InsertColumn(0, _T("窗口名称"), LVCFMT_CENTER, 200);
+			m_PVList->InsertColumn(0, _T("窗口句柄"), LVCFMT_CENTER, 100);
+		}
+	}	//IF END：窗口信息集
 	m_PVList->InsertColumn(0, _T("序"), LVCFMT_CENTER, 50);
 }
 
@@ -366,6 +391,28 @@ void CMyView::InitList(vector<MODULEINFO>& MDs)
 	}
 }
 
+void CMyView::InitList(vector<HWND>& HWs)
+{
+	size_t max = HWs.size(), i = max;
+	if (max-- == 0)	return;
+	this->m_PVList->ShowWindow(SW_HIDE);
+	WCHAR buff[MAX_PATH];
+	HWND* hwnds = &HWs[max];
+	while (i)
+	{
+		m_str.Format(_T("%llu"), i--);
+		this->m_PVList->InsertItem(0, m_str);
+		m_str.Format(_T("%llu"), (ULONG64)(*hwnds));
+		this->m_PVList->SetItemText(0, 1, m_str);
+		if (this->GetWindowTextMy(*hwnds, m_str))
+			this->m_PVList->SetItemText(0, 2, m_str);
+		if (GetClassNameW(*hwnds, buff, MAX_PATH))
+			this->m_PVList->SetItemText(0, 3, buff);
+		--hwnds;
+	}
+	this->m_PVList->ShowWindow(SW_SHOW);
+}
+
 
 void CMyView::InitList(_NTHead_INFO& NTHead, bool bClean /*= true*/)
 {
@@ -386,5 +433,21 @@ void CMyView::InitList(_NTHead_INFO& NTHead, bool bClean /*= true*/)
 	m_str.Format(_T("%d"), NTHead.x64ImageBase ? 64 : 32);
 	this->m_PVList->SetItemText(0, 1, _T("文件位数："));
 	this->m_PVList->SetItemText(0, 2, m_str);
+}
+#pragma endregion
+
+#pragma region 获取信息函数
+bool CMyView::GetWindowTextMy(const HWND hWnd, CStringW& str, bool bAddEm)
+{
+	int len = GetWindowTextLengthW(hWnd) + 1;
+	PWCHAR buff = new WCHAR[len];
+	if (!buff)	return false;
+	GetWindowTextW(hWnd, buff, len);
+	str.Format(L"%s", buff);
+	delete[] buff;
+	if (!bAddEm && str == L"") {
+		return false;
+	}
+	return true;
 }
 #pragma endregion

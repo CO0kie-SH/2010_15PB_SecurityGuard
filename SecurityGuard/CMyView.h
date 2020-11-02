@@ -64,16 +64,22 @@ public:
 	void InitList(vector<PROCESSINFO>&	PCs);
 	void InitList(vector<THREADINFO>&	THs);
 	void InitList(vector<MODULEINFO>&	MDs);
+	void InitList(vector<HWND>&			HWs);
+
 	void InitList(_NTHead_INFO& NTHead,	bool bClean = true);
 
 
 	void DoSomeThingTree(HTREEITEM& hTree);
 
-
 	BOOL GetTreePath(				//遍历树干文本
 		const HTREEITEM& htTree,	//传入的尾部句柄
 		UINT& uiCount,				//传入的截至条件
 		CString& str);				//传出的字符串
+public:
+	bool GetWindowTextMy(const HWND hWnd, CStringW& str,
+		bool bAddEm = true);
+
+
 protected:
 	CMyFile		m_CFile;				//文件
 	CMyProcess	m_CProcess;
