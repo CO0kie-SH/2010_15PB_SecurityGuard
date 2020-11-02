@@ -25,8 +25,9 @@ constexpr	char* gszRBcmd[] = {
 
 typedef struct _FILEINFO
 {
-	WIN32_FIND_DATA data = {};
-	__int64			Size = 0;
+	WIN32_FIND_DATA data;
+	__int64			Size;
+	bool			isDir;
 	TCHAR			path[MAX_PATH];
 } FILEINFO, * LPFILEINFO;
 
@@ -45,7 +46,7 @@ public:
 	CMyFile();
 	~CMyFile();
 
-	BOOL SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path);
+	BOOL SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path, PTCHAR pFileType = nullptr);
 private:
 
 };

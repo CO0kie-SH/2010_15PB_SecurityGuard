@@ -158,8 +158,9 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 		edit->SetWindowTextW(strPath);					//将路径设置为编辑框
 		vector<FILEINFO> FLs;							//初始化数组
 
-
-		if (m_CFile.SearchPaths(FLs, strPath.GetBuffer()))	//获取目录
+		bool bSearchSucc = m_CFile.SearchPaths(FLs,		//搜索目录+*
+			strPath.GetBuffer(), _T("*"));
+		if (bSearchSucc)
 		{
 			this->InitList(FLs);		//向列表控件添加数据
 			size_t max = FLs.size();	//初始化大小
@@ -229,22 +230,23 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 				this->InitList(hwndInfos);
 		}
 	}	//IF END：窗口信息处理
-	else if (tInfo.hrTree == this->m_tRoot->fRubbish.htTree	//如果树根为垃圾
-		&& tInfo.uiDeep == 1) {								//且深度==1
+	else if (tInfo.hrTree == this->m_tRoot->fRubbish.htTree		//如果树根为垃圾
+		&& tInfo.uiDeep == 1) {									//且深度==1
 		unsigned char idx = 0;
-		if (tInfo.str == gszRBFunctions[gdsz_系统垃圾清理])
-			idx = 0;
+		if (tInfo.str == gszRBFunctions[gdsz_系统垃圾清理]) {
+			SHEmptyRecycleBinA(this->m_Main->GetSafeHwnd(), "C:\\",
+				SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND);
+		}
 		else if (tInfo.str == gszRBFunctions[gdsz_IE垃圾清理])
 			idx = 1;
 		else if (tInfo.str == gszRBFunctions[gdsz_VS垃圾清理])
 			idx = 2;
-		system(gszRBcmd[idx]);
 	}	//IF END：垃圾信息处理
-	else if (tInfo.hrTree == this->m_tRoot->fService.htTree	//如果树根为垃圾
-		&& tInfo.uiDeep == 1) {								//且深度==1
-		if (tInfo.str == gszSVFunctions[gdsz_枚举服务]) {
-			if (m_CServices.EnumServices(m_serviceInfos)) {
-				this->InitList(m_serviceInfos);
+	else if (tInfo.hrTree == this->m_tRoot->fService.htTree		//如果树根为服务区
+		&& tInfo.uiDeep == 1) {									//且深度==1
+		if (tInfo.str == gszSVFunctions[gdsz_枚举服务]) {			//是否为枚举服务
+			if (m_CServices.EnumServices(m_serviceInfos)) {		//调用枚举服务
+				this->InitList(m_serviceInfos);					//成功则插入数据
 			}
 		}
 	}	//IF END：服务信息处理
@@ -353,7 +355,7 @@ void CMyView::InitList(vector<FILEINFO>& FLs)
 	FILEINFO* fl = nullptr;
 	TCHAR buff[MAX_PATH];	int count = (int)max;
 	for (i = max, fl = &FLs[max - 1]; i--; --fl) {
-		if (fl->Size) {
+		if (!fl->isDir) {
 			wsprintf(buff, _T("%d"), count--);
 			this->m_PVList->InsertItem(0, buff);
 			this->m_PVList->SetItemText(0, 2, fl->data.cFileName);
@@ -362,10 +364,11 @@ void CMyView::InitList(vector<FILEINFO>& FLs)
 		}
 	}
 	for (i = max, fl = &FLs[max - 1]; i--; --fl) {
-		if (!fl->Size) {
+		if (fl->isDir) {
 			wsprintf(buff, _T("%d"), count--);
 			this->m_PVList->InsertItem(0, buff);
 			this->m_PVList->SetItemText(0, 2, fl->data.cFileName);
+			//this->m_PVList->SetItemText(0, 1, _T("Dir"));
 		}
 	}
 	//END

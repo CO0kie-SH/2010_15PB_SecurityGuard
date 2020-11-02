@@ -19,7 +19,7 @@ CMyFile::~CMyFile()
 	作者：CO0kie丶
 	时间：2020-10-31_14-00
 */
-BOOL CMyFile::SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path)
+BOOL CMyFile::SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path, PTCHAR pFileType /*= nullptr*/)
 {
 	if (nullptr == Path)		return false;		//如果路径不存在则返回
 	if (!PathFileExists(Path))	return false;		//如果文件不存在则返回
@@ -27,17 +27,23 @@ BOOL CMyFile::SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path)
 	if (PathIsDirectoryEmpty(Path))	return false;	//如果空目录则返回
 
 	TCHAR buff[MAX_PATH];
+	wsprintf(buff, _T("%s"), Path);
+	if (nullptr != pFileType)
+		_tcscat_s(buff, MAX_PATH, pFileType);
 	
-	wsprintf(buff, _T("%s*"), Path);
 
 	WIN32_FIND_DATA FindData;	FILEINFO fl;		//初始化文件信息
 	HANDLE FindHandle = FindFirstFile(buff, &FindData);
 	if (FindHandle == INVALID_HANDLE_VALUE)	return false;
 	FLs.clear();
 	do {
-		fl.data = { FindData };
+		//ZeroMemory(&fl, sizeof(FILEINFO));
+		if (0 == lstrcmp(_T("."), FindData.cFileName) ||
+			0 == lstrcmp(_T(".."), FindData.cFileName))
+			continue;
+		fl = FILEINFO{ FindData };
 		if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			fl.Size = 0;
+			fl.isDir = true;
 		else {
 			fl.Size = FindData.nFileSizeLow;		//获取文件大小
 			fl.Size |= (((__int64)FindData.nFileSizeHigh) << 32);

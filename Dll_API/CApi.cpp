@@ -12,7 +12,7 @@
 	原时间：2018/02/28 13:28
 	参考源：https://my.oschina.net/u/4401856/blog/4245706
 */
-DWORD GetMd5_ByCertutil(char* pPath, char* md5)
+DWORD GetMd5_ByCertutil(char* pPath, char md5[33])
 {
 	if (!PathFileExistsA(pPath))	return false;
 	HANDLE hPipeOutputRead = NULL;

@@ -9,9 +9,7 @@
 int main()
 {
 	std::cout << "Hello World!\n";
-	CMyServer cSV;
-	vector<SERVICEINFO> SVs;
-	cSV.EnumServer(SVs);
-	
+	TCHAR buff[MAX_PATH] = L".";
+	int i = strcmp(".", buff);
 	return 0;
 }
