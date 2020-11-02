@@ -62,6 +62,8 @@ public:
 	void InitList(const MyTreeInfo&		tInfo);
 	void InitList(vector<FILEINFO>&		FLs);
 	void InitList(vector<PROCESSINFO>&	PCs);
+	void InitList(vector<THREADINFO>&	THs);
+	void InitList(vector<MODULEINFO>&	MDs);
 	void InitList(_NTHead_INFO& NTHead,	bool bClean = true);
 
 

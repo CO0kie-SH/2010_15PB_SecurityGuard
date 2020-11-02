@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "CMyProcess.h"
-//#include <strsafe.h>
 
 #pragma region 类内函数
 CMyProcess::CMyProcess()
@@ -10,6 +9,15 @@ CMyProcess::CMyProcess()
 CMyProcess::~CMyProcess()
 {
 }
+
+/*
+	函数：枚举进程
+	参数一：存储数据的数组
+	参数二：是否枚举模块，默认为false
+	返回：成功为true，否则为false
+	作者：CO0kie丶
+	时间：2020-11-01_22-35
+*/
 BOOL CMyProcess::EnumProcess(vector<PROCESSINFO>& proInfos, bool bGetMod /*= false*/)
 {
 	HANDLE hToolHelp = CreateToolhelp32Snapshot(
@@ -48,6 +56,98 @@ typedef struct tagPROCESSENTRY32W
 		proInfos.push_back(tmp);
 	} while (Process32Next(hToolHelp, &pe));
 	CloseHandle(hToolHelp);
-	return proInfos.size() != 0;
+	return !proInfos.empty();
+}
+
+/*
+	函数：枚举线程
+	参数一：存储数据的数组
+	参数二：进程PID，为0时枚举所有
+	返回：成功为true，否则为false
+	作者：CO0kie丶
+	时间：2020-11-02_08-35
+*/
+BOOL CMyProcess::EnumThread(vector<THREADINFO>& threadInfos, DWORD dwPid)
+{
+	if (dwPid > 0 && dwPid < 5)	return false;
+	HANDLE hToolHelp = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, NULL);
+	if (hToolHelp == INVALID_HANDLE_VALUE)	return false;
+	//结构体[线程信息][tagTHREADENTRY32]说明
+	/*
+typedef struct tagTHREADENTRY32
+{
+	DWORD   dwSize;				//结构体大小
+	DWORD   cntUsage;			//该成员不再使用，并且始终设置为零。
+	DWORD   th32ThreadID;       //TID
+	DWORD   th32OwnerProcessID; //PID
+	LONG    tpBasePri;			//分配给线程的内核基本优先级。
+	LONG    tpDeltaPri;			//该成员不再使用，并且始终设置为零。
+	DWORD   dwFlags;			//该成员不再使用，并且始终设置为零。
+} THREADENTRY32;
+	*/
+	THREADENTRY32 ThreadInfo = { sizeof(THREADENTRY32) };
+
+	if (Thread32First(hToolHelp, &ThreadInfo))
+	{
+		THREADINFO tmp;
+		do {
+			if (dwPid > 0 &&
+				dwPid != ThreadInfo.th32OwnerProcessID)
+				continue;
+			tmp = THREADINFO{
+				ThreadInfo.th32ThreadID,
+				ThreadInfo.th32OwnerProcessID,
+				ThreadInfo.tpBasePri
+			};
+			threadInfos.push_back(tmp);
+		} while (Thread32Next(hToolHelp, &ThreadInfo));
+	}
+
+	CloseHandle(hToolHelp);
+	return !threadInfos.empty();
+}
+
+/*
+	函数：枚举模块
+	参数一：存储数据的数组
+	参数二：进程PID，为0时枚举所有
+	返回：成功为true，否则为false
+	作者：CO0kie丶
+	时间：2020-11-02_09-12
+*/
+BOOL CMyProcess::EnumModule(vector<MODULEINFO>& moduleInfos, DWORD dwPid)
+{
+	if (dwPid > 0 && dwPid < 5)	return false;
+	HANDLE hToolHelp = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwPid);
+	if (hToolHelp == INVALID_HANDLE_VALUE)	return false;
+	//结构体[模块信息][tagMODULEENTRY32W]说明
+	/*
+typedef struct tagMODULEENTRY32W
+{
+	DWORD   th32ProcessID;      // 所属进程ID
+	BYTE  * modBaseAddr;        // 模块的加载基地址
+	DWORD   modBaseSize;        // 模块的大小
+	HMODULE hModule;            // 模块的句柄(加载基址)
+	WCHAR   szModule[MAX_MODULE_NAME32 + 1];	// 模块名
+	WCHAR   szExePath[MAX_PATH];				// 所在路径
+} MODULEENTRY32W;
+	*/
+	MODULEENTRY32 ModuleInfo = { sizeof(MODULEENTRY32) };
+	if (Module32First(hToolHelp, &ModuleInfo))
+	{
+		MODULEINFO tmp;
+		do {
+			tmp = MODULEINFO{
+				ModuleInfo.th32ProcessID,
+				ModuleInfo.modBaseSize,
+				ModuleInfo.modBaseAddr
+			};
+			wsprintf(tmp.name, _T("%s"), ModuleInfo.szModule);
+			wsprintf(tmp.path, _T("%s"), ModuleInfo.szExePath);
+			moduleInfos.push_back(tmp);
+		} while (Module32Next(hToolHelp, &ModuleInfo));
+	}
+	CloseHandle(hToolHelp);
+	return !moduleInfos.empty();
 }
 #pragma endregion

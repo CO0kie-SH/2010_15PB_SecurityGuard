@@ -178,6 +178,22 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 				this->InitList(proInfos);
 		}
 	}	//IF END：进程信息处理
+	else if (tInfo.hrTree == this->m_tRoot->fThread.htTree	//如果树根为线程
+		&& tInfo.uiDeep == 1) {								//且深度==1
+		if (tInfo.str == gszTHFunctions[gdsz_枚举线程]) {		//枚举线程
+			vector<THREADINFO> thInfos;
+			if (m_CProcess.EnumThread(thInfos),GetCurrentProcessId())
+				this->InitList(thInfos);
+		}
+	}	//IF END：线程信息处理
+	else if (tInfo.hrTree == this->m_tRoot->fModdle.htTree	//如果树根为模块
+		&& tInfo.uiDeep == 1) {								//且深度==1
+		if (tInfo.str == gszMDFunctions[gdsz_枚举模块]) {		//枚举模块
+			vector<MODULEINFO> mdInfos;
+			if (m_CProcess.EnumModule(mdInfos),GetCurrentProcessId())
+				this->InitList(mdInfos);
+		}
+	}	//IF END：模块信息处理
 	return;
 }
 
@@ -217,14 +233,14 @@ void CMyView::InitList(const MyTreeInfo& tInfo)
 		m_PVList->InsertColumn(0, _T("创建时间"), LVCFMT_CENTER, 222);
 		m_PVList->InsertColumn(0, _T("文件名"), LVCFMT_CENTER, 222);
 		m_PVList->InsertColumn(0, _T("大小"), LVCFMT_CENTER, 88);
-	}
+	}	//IF END：文件信息集
 	else if (tInfo.hrTree == this->m_tRoot->fPE.htTree		//如果树根为PE
 		&& tInfo.uiDeep == 1) {
 		if (tInfo.str == gszPEFunctions[0]) {	//NT头
 			m_PVList->InsertColumn(0, _T("配置值"), LVCFMT_CENTER, 123);
 			m_PVList->InsertColumn(0, _T("配置项"), LVCFMT_CENTER, 150);
 		}
-	}
+	}	//IF END：PE信息集
 	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree	//如果树根为进程
 		&& tInfo.uiDeep == 1) {
 		if (tInfo.str == gszPCFunctions[0]) {	//枚举
@@ -233,9 +249,28 @@ void CMyView::InitList(const MyTreeInfo& tInfo)
 			m_PVList->InsertColumn(0, _T("本进程"), LVCFMT_CENTER, 77);
 			m_PVList->InsertColumn(0, _T("父进程"), LVCFMT_CENTER, 77);
 		}
-	}
+	}	//IF END：进程信息集
+	else if (tInfo.hrTree == this->m_tRoot->fThread.htTree	//如果树根为线程
+		&& tInfo.uiDeep == 1) {
+		if (tInfo.str == gszTHFunctions[0]) {	//枚举
+			m_PVList->InsertColumn(0, _T("优先级"), LVCFMT_CENTER, 77);
+			m_PVList->InsertColumn(0, _T("TID"), LVCFMT_CENTER, 77);
+			m_PVList->InsertColumn(0, _T("PID"), LVCFMT_CENTER, 77);
+		}
+	}	//IF END：线程信息集
+	else if (tInfo.hrTree == this->m_tRoot->fModdle.htTree	//如果树根为模块
+		&& tInfo.uiDeep == 1) {
+		if (tInfo.str == gszMDFunctions[0]) {	//枚举
+			m_PVList->InsertColumn(0, _T("模块路径"), LVCFMT_CENTER, 188);
+			m_PVList->InsertColumn(0, _T("模块名称"), LVCFMT_CENTER, 188);
+			m_PVList->InsertColumn(0, _T("模块大小"), LVCFMT_CENTER, 100);
+			m_PVList->InsertColumn(0, _T("模块基址"), LVCFMT_CENTER, 200);
+			m_PVList->InsertColumn(0, _T("PID"), LVCFMT_CENTER, 77);
+		}
+	}	//IF END：模块信息集
 	m_PVList->InsertColumn(0, _T("序"), LVCFMT_CENTER, 50);
 }
+
 
 void CMyView::InitList(vector<FILEINFO>& FLs)
 {
@@ -264,15 +299,16 @@ void CMyView::InitList(vector<FILEINFO>& FLs)
 	return;
 }
 
+
 void CMyView::InitList(vector<PROCESSINFO>& PCs)
 {
 	size_t max = PCs.size(), i = max;
 	if (max-- == 0)	return;
 	LPPROCESSINFO fl = &PCs[max];
 	this->m_PVList->ShowWindow(SW_HIDE);
-	while (i--)
+	while (i)
 	{
-		m_str.Format(_T("%llu"), i + 1);
+		m_str.Format(_T("%llu"), i--);
 		this->m_PVList->InsertItem(0, m_str);
 		m_str.Format(_T("%lu"), fl->pPID);
 		this->m_PVList->SetItemText(0, 1, m_str);
@@ -288,16 +324,57 @@ void CMyView::InitList(vector<PROCESSINFO>& PCs)
 	this->m_PVList->ShowWindow(SW_SHOW);
 }
 
+
+void CMyView::InitList(vector<THREADINFO>& THs)
+{
+	size_t max = THs.size(), i = max;
+	if (max-- == 0)	return;
+	LPTHREADINFO th = &THs[max];
+	while (i)
+	{
+		m_str.Format(_T("%llu"), i--);
+		this->m_PVList->InsertItem(0, m_str);
+		m_str.Format(_T("%lu"), th->th32OwnerProcessID);
+		this->m_PVList->SetItemText(0, 1, m_str);
+		m_str.Format(_T("%lu"), th->th32ThreadID);
+		this->m_PVList->SetItemText(0, 2, m_str);
+		m_str.Format(_T("%lu"), th->tpBasePri);
+		this->m_PVList->SetItemText(0, 3, m_str);
+		--th;
+	}
+}
+
+
+void CMyView::InitList(vector<MODULEINFO>& MDs)
+{
+	size_t max = MDs.size(), i = max;
+	if (max-- == 0)	return;
+	LPMODULEINFO th = &MDs[max];
+	while (i)
+	{
+		m_str.Format(_T("%llu"), i--);
+		this->m_PVList->InsertItem(0, m_str);
+		m_str.Format(_T("%lu"), th->pPID);
+		this->m_PVList->SetItemText(0, 1, m_str);
+		m_str.Format(_T("0x%p"), th->modBaseAddr);
+		this->m_PVList->SetItemText(0, 2, m_str);
+		m_str.Format(_T("0x%06lX"), th->size);
+		this->m_PVList->SetItemText(0, 3, m_str);
+		this->m_PVList->SetItemText(0, 4, th->name);
+		this->m_PVList->SetItemText(0, 5, th->path);
+		--th;
+	}
+}
+
+
 void CMyView::InitList(_NTHead_INFO& NTHead, bool bClean /*= true*/)
 {
 	if (!NTHead.dwPEHead[0])	return;				//无入口点
-	if (bClean)	this->m_PVList->DeleteAllItems();	//
-
+	if (bClean)	this->m_PVList->DeleteAllItems();	//删除当前列表
 	BYTE i = 16;
-	
-	while (i--)
+	while (i)
 	{
-		this->m_str.Format(_T("%d"), i + 1);
+		this->m_str.Format(_T("%d"), i--);
 		this->m_PVList->InsertItem(0, m_str);
 		this->m_PVList->SetItemText(0, 1, gszNTHeadInfos[i]);
 		m_str.Format(_T("0x%08lX"), NTHead.dwPEHead[i]);
