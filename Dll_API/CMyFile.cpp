@@ -19,7 +19,8 @@ CMyFile::~CMyFile()
 	作者：CO0kie丶
 	时间：2020-10-31_14-00
 */
-BOOL CMyFile::SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path, PTCHAR pFileType /*= nullptr*/)
+BOOL CMyFile::SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path,
+	PTCHAR pFileType /*= nullptr*/, bool isClear /*= true*/)
 {
 	if (nullptr == Path)		return false;		//如果路径不存在则返回
 	if (!PathFileExists(Path))	return false;		//如果文件不存在则返回
@@ -35,7 +36,7 @@ BOOL CMyFile::SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path, PTCHAR pFileType /
 	WIN32_FIND_DATA FindData;	FILEINFO fl;		//初始化文件信息
 	HANDLE FindHandle = FindFirstFile(buff, &FindData);
 	if (FindHandle == INVALID_HANDLE_VALUE)	return false;
-	FLs.clear();
+	if (isClear) FLs.clear();
 	do {
 		//ZeroMemory(&fl, sizeof(FILEINFO));
 		if (0 == lstrcmp(_T("."), FindData.cFileName) ||

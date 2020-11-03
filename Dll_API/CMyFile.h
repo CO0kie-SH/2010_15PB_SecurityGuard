@@ -2,6 +2,7 @@
 #include "CInclude.h"
 
 #define		gdefRBFunctions_MAX		0x03
+#define		gdefRBVS_MAX			0x08
 
 
 enum _Enum垃圾功能区
@@ -21,6 +22,17 @@ constexpr	char* gszRBcmd[] = {
 	(char*)"echo 按任意键清除系统垃圾文件。&&pause&&",
 	(char*)"pause&&ping 127.0.0.2",
 	(char*)"pause&&ping 127.0.0.3"
+};
+
+constexpr	PTCHAR gszRBVS[] = {
+	(PTCHAR)_T(".ilk"),
+	(PTCHAR)_T(".pdb"),
+	(PTCHAR)_T(".obj"),
+	(PTCHAR)_T(".log"),
+	(PTCHAR)_T(".pch"),
+	(PTCHAR)_T(".tlog"),
+	(PTCHAR)_T(".lastbuildstate"),
+	(PTCHAR)_T(".db")
 };
 
 typedef struct _FILEINFO
@@ -46,7 +58,8 @@ public:
 	CMyFile();
 	~CMyFile();
 
-	BOOL SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path, PTCHAR pFileType = nullptr);
+	BOOL SearchPaths(vector<FILEINFO>& FLs, PTCHAR Path,
+		PTCHAR pFileType = nullptr, bool isClear = true);
 private:
 
 };

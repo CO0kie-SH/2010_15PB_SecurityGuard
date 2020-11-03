@@ -6,6 +6,7 @@
 #include "CMyProcess.h"
 #include "CMyHwnd.h"
 #include "CMyServer.h"
+#include "CHeap.h"
 
 
 #define defExitID程序正常退出			0x0000;
@@ -27,6 +28,9 @@ extern "C" _declspec(dllexport)
 BOOL EnableDebugPrivilege();
 
 
+extern _declspec(dllexport)
+BOOL CALLBACK EnumFilePaths(void(*CALLBACKPROC)(LPFILEINFO),
+	PTCHAR Path, CHeap* heap, PTCHAR Kind = nullptr);
 
 
 class CApi

@@ -202,6 +202,64 @@ BOOL EnableDebugPrivilege()
 	}
 	return bRet;
 }
+
+
+/*
+	函数：枚举文件回调
+	时间：2020-11-03_23-20
+*/
+BOOL CALLBACK EnumFilePaths(void(*CALLBACKPROC)(LPFILEINFO),
+	PTCHAR Path, CHeap* heap, PTCHAR Kind /*= nullptr*/)
+{
+	if (nullptr == Path)		return false;		//如果路径不存在则返回
+	//if (!PathFileExists(Path))	return false;		//如果文件不存在则返回
+	if (!PathIsDirectory(Path))	return false;		//如果目录不存在则返回
+	if (PathIsDirectoryEmpty(Path))	return false;	//如果空目录则返回
+
+
+	//CHeap cHeap;		//定义一个堆控制器
+	PTCHAR buff = (PTCHAR)heap->HeapAlloc(
+		sizeof(TCHAR) * MAX_PATH);
+	if (!buff)	return false;
+
+	//初始化文件信息
+	FILEINFO fl;
+	ZeroMemory(&fl, sizeof(FILEINFO));
+	_tcscpy_s(fl.path, MAX_PATH, Path);
+
+
+	wsprintf(buff, _T("%s"), Path);
+	_tcscat_s(buff, MAX_PATH, Kind ? Kind : _T("*"));	//向目录添加搜索条件
+
+	HANDLE FindHandle = FindFirstFile(buff, &fl.data);
+	if (FindHandle == INVALID_HANDLE_VALUE)	return false;
+
+	vector<PTCHAR>	vPathSave;
+	//开始循环
+	do {
+		if (0 == lstrcmp(_T("."), fl.data.cFileName) ||
+			0 == lstrcmp(_T(".."), fl.data.cFileName))
+			continue;
+		if (fl.data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			fl.isDir = true;
+		else {
+			fl.Size = fl.data.nFileSizeLow;		//获取文件大小
+			fl.Size |= (((__int64)fl.data.nFileSizeHigh) << 32);
+		}
+		wsprintf(buff, _T("%s\t%-22s\t父文件夹\t%s\n"), fl.isDir ?
+			_T("文件夹") : _T("文件"), fl.data.cFileName, fl.path);
+		OutputDebugString(buff);
+		//向回调函数回调
+		CALLBACKPROC(&fl);
+		if (fl.isDir) {
+			wsprintf(buff, _T("%s%s\\"), fl.path, fl.data.cFileName);
+			EnumFilePaths(CALLBACKPROC, buff, heap);
+		}
+	} while (FindNextFile(FindHandle, &fl.data));
+	FindClose(FindHandle);
+	heap->HeapFree(buff);
+	return TRUE;
+}
 #pragma endregion
 
 

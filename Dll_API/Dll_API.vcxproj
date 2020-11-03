@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CApi.h" />
+    <ClInclude Include="CHeap.h" />
     <ClInclude Include="CInclude.h" />
     <ClInclude Include="CMyFile.h" />
     <ClInclude Include="CMyHwnd.h" />
@@ -164,6 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CApi.cpp" />
+    <ClCompile Include="CHeap.cpp" />
     <ClCompile Include="CMyFile.cpp" />
     <ClCompile Include="CMyHwnd.cpp" />
     <ClCompile Include="CMyServer.cpp" />

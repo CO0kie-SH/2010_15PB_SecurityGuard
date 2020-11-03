@@ -373,8 +373,8 @@ void CMyView::InitList(const MyTreeInfo& tInfo, bool isRef)
 
 	m_PVList->InsertColumn(0, _T("备注"), LVCFMT_LEFT, 123);	//增加备注
 	if (tInfo.hrTree == this->m_tRoot->fFile.htTree) {			//如果树根为文件
-		m_PVList->InsertColumn(0, _T("修改时间"), LVCFMT_LEFT, 222);
-		m_PVList->InsertColumn(0, _T("创建时间"), LVCFMT_LEFT, 222);
+		//m_PVList->InsertColumn(0, _T("修改时间"), LVCFMT_LEFT, 222);
+		//m_PVList->InsertColumn(0, _T("创建时间"), LVCFMT_LEFT, 222);
 		m_PVList->InsertColumn(0, _T("文件名"), LVCFMT_LEFT, 222);
 		m_PVList->InsertColumn(0, _T("大小"), LVCFMT_LEFT, 88);
 	}	//IF END：文件信息集
