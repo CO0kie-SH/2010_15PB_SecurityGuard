@@ -65,7 +65,7 @@ public:
 	CMyProcess();
 	~CMyProcess();
 
-	BOOL EnumProcess(vector<PROCESSINFO>& proInfos,
+	BOOL EnumProcess(vector<PROCESSINFO>* proInfos,
 		bool bGetMod = false, bool bCleanMem = false);
 	BOOL EnumThread(vector<THREADINFO>& threadInfos, DWORD dwPid = 0);
 	BOOL EnumModule(vector<MODULEINFO>& moduleInfos, DWORD dwPid = 0);

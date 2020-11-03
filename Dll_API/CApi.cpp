@@ -173,6 +173,35 @@ float GetCpuUsage()
 	return  float(100.0 - (dNewIdleTime - dOldIdleTime) /
 		(dNewKernelTime - dOldKernelTime + dNewUserTime - dOldUserTime) * 100.0);
 }
+
+
+
+/*
+	函数：提升权限
+	链接：https://blog.csdn.net/paschen/article/details/52829867
+*/
+BOOL EnableDebugPrivilege()
+{
+	BOOL bRet = FALSE;
+	HANDLE hToken;
+	if (::OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
+	{
+		LUID luid;
+		if (::LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid))
+		{
+			TOKEN_PRIVILEGES tp;
+			tp.PrivilegeCount = 1UL;
+			tp.Privileges[0].Luid = luid;
+			tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+			if (::AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), NULL, NULL))
+			{
+				bRet = TRUE;
+			}
+		}
+		::CloseHandle(hToken);
+	}
+	return bRet;
+}
 #pragma endregion
 
 

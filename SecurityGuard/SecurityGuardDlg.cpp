@@ -68,7 +68,7 @@ BEGIN_MESSAGE_MAP(CSecurityGuardDlg, CDialogEx)
 	ON_NOTIFY(NM_DBLCLK, IDC_TREE1, &CSecurityGuardDlg::OnNMDblclkTree1)
 	ON_NOTIFY(NM_RCLICK, IDC_LIST1, &CSecurityGuardDlg::OnNMRClickList1)
 	//ON_COMMAND(ID_32774, &CSecurityGuardDlg::OnClickMenu)
-	ON_COMMAND_RANGE(ID_32772,ID_32776, &CSecurityGuardDlg::OnClickMenu)
+	ON_COMMAND_RANGE(ID_32772,ID_32777, &CSecurityGuardDlg::OnClickMenu)
 END_MESSAGE_MAP()
 
 
@@ -106,6 +106,7 @@ BOOL CSecurityGuardDlg::OnInitDialog()
 	// TODO: 在此添加额外的初始化代码
 	//this->ShowWindow(SW_HIDE);
 	gView.Init(this);
+	gCtrl.Init(this->GetSafeHwnd());
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 

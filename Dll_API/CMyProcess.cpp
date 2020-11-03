@@ -18,7 +18,7 @@ CMyProcess::~CMyProcess()
 	作者：CO0kie丶
 	时间：2020-11-01_22-35
 */
-BOOL CMyProcess::EnumProcess(vector<PROCESSINFO>& proInfos,
+BOOL CMyProcess::EnumProcess(vector<PROCESSINFO>* proInfos,
 	bool bGetMod /*= false*/, bool bCleanMem /*= false*/)
 {
 	HANDLE hToolHelp = CreateToolhelp32Snapshot(
@@ -45,18 +45,19 @@ typedef struct tagPROCESSENTRY32W
 		CloseHandle(hToolHelp);
 		return false;
 	}
-	if (proInfos.size())	proInfos.clear();
+	if (proInfos && !proInfos->empty())	proInfos->clear();
 	PROCESSINFO tmp;
 	do {
-		tmp = PROCESSINFO{
-			pe.th32ProcessID,
-			pe.th32ParentProcessID,
-			pe.cntThreads
-		};
-		wsprintf(tmp.name, _T("%s"), pe.szExeFile);
-		proInfos.push_back(tmp);
-
-
+		//循环添加数组
+		if (proInfos) {
+			tmp = PROCESSINFO{
+				pe.th32ProcessID,
+				pe.th32ParentProcessID,
+				pe.cntThreads
+			};
+			wsprintf(tmp.name, _T("%s"), pe.szExeFile);
+			proInfos->push_back(tmp);
+		}
 		//参考 https://blog.csdn.net/paschen/article/details/52829867
 		if (bCleanMem) {
 			HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe.th32ProcessID);
@@ -68,7 +69,10 @@ typedef struct tagPROCESSENTRY32W
 		}
 	} while (Process32Next(hToolHelp, &pe));
 	CloseHandle(hToolHelp);
-	return !proInfos.empty();
+	if (proInfos && !proInfos->empty())
+		return true;
+	if (bCleanMem)	return true;
+	return false;
 }
 
 /*

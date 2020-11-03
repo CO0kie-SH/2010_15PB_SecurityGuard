@@ -22,6 +22,7 @@ CMyView::~CMyView()
 void CMyView::Init(CDialogEx* wMain)
 {
 	this->m_Main = wMain;
+	this->m_PVMenu = wMain->GetMenu();
 	this->m_PVList = (CListCtrl*)wMain->GetDlgItem(IDC_LIST1);
 	this->m_PVList->SetExtendedStyle(/*LVS_EX_CHECKBOXES |*/ //这是复选框
 		LVS_EX_GRIDLINES |
@@ -284,7 +285,7 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 		&& tInfo.uiDeep == 1) {								//且深度==1
 		if (tInfo.str == gszPCFunctions[gdsz_枚举进程]) {		//枚举进程
 			vector<PROCESSINFO> proInfos;
-			if (m_CProcess.EnumProcess(proInfos))
+			if (m_CProcess.EnumProcess(&proInfos))
 				this->InitList(proInfos);
 		}
 	}	//IF END：进程信息处理

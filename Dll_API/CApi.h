@@ -22,6 +22,13 @@ extern double FILETIME2Double(const _FILETIME& fileTime);
 extern "C" _declspec(dllexport)
 float GetCpuUsage();
 
+
+extern "C" _declspec(dllexport)
+BOOL EnableDebugPrivilege();
+
+
+
+
 class CApi
 {
 };

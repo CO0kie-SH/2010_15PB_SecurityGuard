@@ -79,7 +79,9 @@ public:
 public:
 	bool GetWindowTextMy(const HWND hWnd, CStringW& str,
 		bool bAddEm = true);
-
+	void* GetPVMenu() {
+		return m_PVMenu;
+	};
 
 protected:
 	WindStatu	m_Statu;				//视图状态
@@ -92,7 +94,7 @@ private:
 	CDialogEx*	m_Main	 = nullptr;		//主窗口
 	CTreeCtrl*	m_PVTree = nullptr;		//树控件
 	CListCtrl*	m_PVList = nullptr;		//列表控件
-
+	CMenu*		m_PVMenu = nullptr;		//菜单控件
 	PMyFunction	m_tRoot = nullptr;		//定义视图根节点
 	DWORD		m_dw = 0;				//局部临时dw变量
 	CString		m_str;					//局部临时str字符串
