@@ -7,7 +7,8 @@
 
 CPE::CPE() :FOA(0), is32o64(0)
 {
-	ZeroMemory(&NTHead_Info, sizeof(NTHead_INFO));
+	ZeroMemory(&this->NTHead_Info, sizeof(NTHead_INFO));
+	ZeroMemory(&this->ZONE_Info, sizeof(ZONE_INFO));
 }
 
 
@@ -182,7 +183,8 @@ typedef struct _IMAGE_NT_HEADERS {
 	}
 	return true;
 }
-DWORD CPE::RvaToFoa(DWORD dwRva, bool isPrint /*= false*/)
+DWORD CPE::RvaToFoa(DWORD dwRva, bool isPrint /*= false*/,
+	vector<ZONE_INFO>* zoneInfos /*= nullptr*/)
 {
 	if (FOA == 0)	return NULL;	//如果FOA为0则失败
 	//结构体[区段表]说明
@@ -230,8 +232,52 @@ typedef struct _IMAGE_SECTION_HEADER {
 			wsprintfA(buff, "标志%lX\t%s\n",
 				pHeader[i].Characteristics, pHeader[i].Name);
 			OutputDebugStringA(buff);
+			
+		}
+		if (zoneInfos) {
+			wsprintfA(buff, "%s", pHeader[i].Name);
+
+			this->ZONE_Info.dwNums = _pNt->FileHeader.NumberOfSections;
+			this->ZONE_Info.dwSectionRva = dwSectionRva;
+			this->ZONE_Info.dwSectionLen = dwSectionLen;
+			this->ZONE_Info.dwSectionEnd = dwSectionEnd;
+			this->ZONE_Info.dwSectionFoa = dwSectionFoa;
+			this->ZONE_Info.dwSectionVSize = dwSectionVSize;
+			this->ZONE_Info.dwCharacteristics = pHeader[i].Characteristics;
+			mbstowcs_s(nullptr, this->ZONE_Info.chName, buff, 8);
+			zoneInfos->push_back(this->ZONE_Info);
 		}
 	}
 	return NULL;
+}
+BOOL CPE::GetTableInfo()
+{
+	if (FOA == 0)	return false;
+	PIMAGE_OPTIONAL_HEADER32 pOption32 = (PIMAGE_OPTIONAL_HEADER32)
+		&_pNt->OptionalHeader;
+	PIMAGE_OPTIONAL_HEADER64 pOption64 = (PIMAGE_OPTIONAL_HEADER64)
+		&_pNt->OptionalHeader;
+
+	PIMAGE_DATA_DIRECTORY pTable = this->is32o64 == 32 ? pOption32->DataDirectory :
+		this->is32o64 == 64 ? pOption64->DataDirectory : nullptr;
+	if (pTable == nullptr)	return false;
+
+
+	PDWORD pdwRVA = (PDWORD)&Table_Info.dwRVA;
+	PDWORD pdwSize = (PDWORD)&Table_Info.dwSize;
+	ZeroMemory(&Table_Info, sizeof(PETables_INFO));
+
+
+	for (BYTE i = 0; i < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; ++i,++pTable)
+	{
+		pdwRVA[i] = pTable->VirtualAddress;
+		pdwSize[i] = pTable->Size;
+		Table_Info.chName[i] = gszTablesInfos[i];
+		//wsprintf(buff, _T("%d\t%08lX\t"),i, pTable->VirtualAddress);
+		//OutputDebugString(buff);
+		//wsprintf(buff, _T("%08lX\n"), pTable->Size);
+		//OutputDebugString(buff);
+	}
+	return true;
 }
 #pragma endregion

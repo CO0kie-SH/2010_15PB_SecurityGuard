@@ -59,7 +59,7 @@ public:
 	void Init(const HTREEITEM& hTree);
 
 
-	void InitList(const MyTreeInfo&		tInfo);
+	void InitList(const MyTreeInfo& tInfo, bool isRef = false);
 	void InitList(vector<FILEINFO>&		FLs);
 	void InitList(vector<PROCESSINFO>&	PCs);
 	void InitList(vector<THREADINFO>&	THs);

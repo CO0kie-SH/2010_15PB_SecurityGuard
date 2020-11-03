@@ -183,10 +183,50 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 			if (m_CPE.GetNTHeadInfo()) {
 				this->InitList(m_CPE.NTHead_Info);
 			}
-		}
+		}	//IF END：PENT头处理
 		else if (tInfo.str == gszPEFunctions[gdsz_PE区段信息]) {
-			
-		}
+			this->InitList(tInfo, true);
+
+			vector<ZONE_INFO> zoneInfos;
+			this->m_CPE.RvaToFoa(1, true, &zoneInfos);
+			if (!zoneInfos.empty()) {
+				i = zoneInfos.size();
+				while (i)
+				{
+					m_str.Format(_T("%llu"), i--);
+					this->m_PVList->InsertItem(0, m_str);
+					this->m_PVList->SetItemText(0, 1, zoneInfos[i].chName);
+					PDWORD pInfo = (PDWORD)&zoneInfos[i];
+					for (BYTE j = 1; j < gdefZONEInfos_MAX; ++j)
+					{
+						m_str.Format(_T("%08lX"), pInfo[j]);
+						this->m_PVList->SetItemText(0, j + 1, m_str);
+					}
+				}
+				this->m_PVList->InsertItem(0, _T("0"));
+				m_str.Format(_T("共%llu个"), zoneInfos.size());
+				this->m_PVList->SetItemText(0, 1, m_str);
+			}
+		}	//IF END：PE区段处理
+		else if (tInfo.str == gszPEFunctions[gdsz_PE目录信息]) {
+			this->InitList(tInfo, true);
+
+
+			if (this->m_CPE.GetTableInfo()) {
+				PDWORD pdwRVA = (PDWORD)&this->m_CPE.Table_Info.dwRVA;
+				PDWORD pdwSize = (PDWORD)&this->m_CPE.Table_Info.dwSize;
+				i = 16;
+				do {
+					m_str.Format(_T("%llu"), i-- );
+					this->m_PVList->InsertItem(0, m_str);
+					this->m_PVList->SetItemText(0, 1, gszTablesInfos[i]);
+					m_str.Format(_T("%08lX"), pdwRVA[i]);
+					this->m_PVList->SetItemText(0, 2, m_str);
+					m_str.Format(_T("%08lX"), pdwSize[i]);
+					this->m_PVList->SetItemText(0, 3, m_str);
+				} while (i);
+			}
+		}	//IF END：PE目录处理
 	}	//IF END：PE信息处理
 	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree	//如果树根为进程
 		&& tInfo.uiDeep == 1) {								//且深度==1
@@ -268,9 +308,10 @@ BOOL CMyView::GetTreePath(const HTREEITEM& htTree,
 	作者：CO0kie丶
 	时间：2020-10-31_15-45
 */
-void CMyView::InitList(const MyTreeInfo& tInfo)
+void CMyView::InitList(const MyTreeInfo& tInfo, bool isRef)
 {
-	if (tInfo.hrTree == this->m_Statu.tKind.hrTree)		//如果树根相同则返回
+	if (tInfo.hrTree == this->m_Statu.tKind.hrTree &&	//如果树根相同则返回
+		isRef == false)
 		return;
 	this->m_Statu.tKind = tInfo;						//将新信息赋值给当前状态
 
@@ -286,11 +327,20 @@ void CMyView::InitList(const MyTreeInfo& tInfo)
 	}	//IF END：文件信息集
 	else if (tInfo.hrTree == this->m_tRoot->fPE.htTree			//如果树根为PE
 		&& tInfo.uiDeep == 1) {									//且深度为1
-		if (tInfo.str == gszPEFunctions[gdsz_PE文件头] ||		//NT头
-			tInfo.str == gszPEFunctions[gdsz_PE区段信息]			//区段信息
-			) {	
+		if (tInfo.str == gszPEFunctions[gdsz_PE文件头]) {		//NT头
 			m_PVList->InsertColumn(0, _T("配置值"), LVCFMT_CENTER, 123);
 			m_PVList->InsertColumn(0, _T("配置项"), LVCFMT_CENTER, 150);
+		}
+		else if (tInfo.str == gszPEFunctions[gdsz_PE区段信息]) {	//区段信息
+			for (BYTE i = gdefZONEInfos_MAX; i--; )
+			{
+				m_PVList->InsertColumn(0, gszZONEInfos[i], LVCFMT_CENTER, 123);
+			}
+		}
+		else if (tInfo.str == gszPEFunctions[gdsz_PE目录信息]) {	//目录信息
+			this->m_PVList->InsertColumn(0, _T("大小"), LVCFMT_CENTER, 123);
+			this->m_PVList->InsertColumn(0, _T("RVA"), LVCFMT_CENTER, 123);
+			this->m_PVList->InsertColumn(0, _T("目录名"), LVCFMT_CENTER, 123);
 		}
 	}	//IF END：PE信息集
 	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree		//如果树根为进程
