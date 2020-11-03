@@ -320,11 +320,19 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 		if (tInfo.str == gszRBFunctions[gdsz_系统垃圾清理]) {
 			SHEmptyRecycleBinA(this->m_Main->GetSafeHwnd(), "C:\\",
 				SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND);
+			SHEmptyRecycleBinA(this->m_Main->GetSafeHwnd(), "D:\\",
+				SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND);
 		}
-		else if (tInfo.str == gszRBFunctions[gdsz_IE垃圾清理])
-			idx = 1;
-		else if (tInfo.str == gszRBFunctions[gdsz_VS垃圾清理])
-			idx = 2;
+		else if (tInfo.str == gszRBFunctions[gdsz_IE垃圾清理]) {
+			ShellExecute(NULL, _T("open"), _T("rundll32.exe"),
+				_T("InetCpl.cpl,ClearMyTracksByProcess 4351"), NULL, SW_SHOWNORMAL);
+			//https://blog.csdn.net/hongweigg/article/details/52238411
+		}
+		else if (tInfo.str == gszRBFunctions[gdsz_VS垃圾清理]) {
+
+			//ShellExecute(NULL, _T("open"), _T("cmd.exe"),
+			//	_T("/c ping 127.0.0.1"), NULL, SW_SHOW);
+		}
 	}	//IF END：垃圾信息处理
 	else if (tInfo.hrTree == this->m_tRoot->fService.htTree		//如果树根为服务区
 		&& tInfo.uiDeep == 1) {									//且深度==1

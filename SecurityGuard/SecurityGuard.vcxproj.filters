@@ -39,6 +39,12 @@
     <ClInclude Include="CController.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="MD5ChecksumDefines.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CMD5Checksum.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SecurityGuard.cpp">
@@ -54,6 +60,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CController.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CMD5Checksum.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

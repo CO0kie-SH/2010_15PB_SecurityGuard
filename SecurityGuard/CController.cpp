@@ -130,6 +130,11 @@ void CController::DoSomeMenu(UINT nID)
 			}
 		break;
 	case ID_32776: {		//刷新
+		//CString strRet, strPath;
+		//strPath = L"D:\\15pb\\del.bat";
+		//strRet = CMD5Checksum::GetMD5(strPath);
+		//OutputDebugString(strPath);
+		//OutputDebugString(strRet);
 	}break;
 	case ID_32777: {		//CPU
 		if (IDYES == MessageBox(m_wMain, _T("确认要退清理内存吗？"),

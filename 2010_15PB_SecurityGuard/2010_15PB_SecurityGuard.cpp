@@ -10,7 +10,7 @@ static __int64 iDirNum = 0, iFileNum = 0, iSize = 0;
 //定义带参回调函数
 void FileCallBack(LPFILEINFO pFileInfo)
 {
-	bool isDir = pFileInfo->isDir;
+	bool& isDir = pFileInfo->isDir;
 	if (isDir)
 		++iDirNum;
 	else {
@@ -23,10 +23,19 @@ void FileCallBack(LPFILEINFO pFileInfo)
 		for (BYTE i = 0; i < gdefRBVS_MAX; i++)
 		{
 			if (0 == lstrcmp(gszRBVS[i], pKind)) {
+				char chMd5[33];
+				ZeroMemory(chMd5, 33);
+				//PTCHAR fpath = (PTCHAR)L"D:\\15pb\\del.bat";
+				TCHAR buff[MAX_PATH];
+				_tcscpy_s(buff, MAX_PATH, pFileInfo->path);
+				_tcscat_s(buff, MAX_PATH, pFileInfo->data.cFileName);
+				GetMd5_ByCertutil(buff, chMd5);
+				printf_s("%32s\t", chMd5);
 				wprintf_s(L"%llu\t%9llX\t%-9s\t%s\n", iFileNum,
 					pFileInfo->Size, pKind,
 					pName);
 				iSize += pFileInfo->Size;
+
 				break;
 			}
 		}
@@ -38,6 +47,7 @@ void FileCallBack(LPFILEINFO pFileInfo)
 int main(int argc, char* argv[])
 {
 	setlocale(LC_ALL, "chs");
+
 	CHeap cHeap;
 	PTCHAR path = (PTCHAR)L"D:\\15pb\\";
 	EnumFilePaths(FileCallBack, path, &cHeap);

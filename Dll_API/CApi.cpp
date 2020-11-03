@@ -5,16 +5,16 @@
 #pragma region 导出函数段
 /*
 	函数：创建进程，获取文件Md5
-	返回：获取成功时返回用时毫秒数，否则返回0
+	返回：成功时返回用时毫秒数，否则返回0
 	修改：CO0kie丶
 	时间：2020-10-29_21-35
 	原作者：osc_ma60u6gg
 	原时间：2018/02/28 13:28
 	参考源：https://my.oschina.net/u/4401856/blog/4245706
 */
-DWORD GetMd5_ByCertutil(char* pPath, char md5[33])
+DWORD GetMd5_ByCertutil(PTCHAR pPath, char md5[33])
 {
-	if (!PathFileExistsA(pPath))	return false;
+	if (!PathFileExists(pPath))	return false;
 	HANDLE hPipeOutputRead = NULL;
 	HANDLE hPipeOutputWrite = NULL;
 
@@ -32,7 +32,7 @@ DWORD GetMd5_ByCertutil(char* pPath, char md5[33])
 
 	//创建进程 
 	//使子进程使用hPipeOutputWrite作为标准输出使用hPipeInputRead作为标准输入，并使子进程在后台运行
-	STARTUPINFOA si = { sizeof(si) };
+	STARTUPINFO si = { sizeof(si) };
 	si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
 	//si.wShowWindow = SW_HIDE;
 	//si.hStdInput = hPipeInputRead;
@@ -41,12 +41,12 @@ DWORD GetMd5_ByCertutil(char* pPath, char md5[33])
 	PROCESS_INFORMATION pi;
 	ZeroMemory(&pi, sizeof(pi));
 	ULONGLONG ullsysTime = GetTickCount64();
-	char buff[MAX_PATH];		//初始化字符串
-	if (wsprintfA(buff,			//格式化命令行
-		"\"certutil\"  -hashfile  \"%s\" \"md5\"",
+	TCHAR buff[MAX_PATH];		//初始化字符串
+	if (wsprintf(buff,			//格式化命令行
+		_T("\"certutil\"  -hashfile  \"%s\" \"md5\""),
 		pPath) > 250)			//如果存在长路径或路径攻击
 		return false;			//则返回失败
-	if (!CreateProcessA(NULL, (char*)
+	if (!CreateProcess(NULL,
 		buff,
 		NULL,
 		NULL,
@@ -65,15 +65,16 @@ DWORD GetMd5_ByCertutil(char* pPath, char md5[33])
 	GetExitCodeProcess(pi.hProcess, &len);	//获取进程退出码
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
+	char chbuff[MAX_PATH];
 	if (len == 0x00) {
 		if (ReadFile(
 			hPipeOutputRead,	// handle of the read end of our pipe
-			&buff,		// address of buffer that receives data
+			&chbuff,		// address of buffer that receives data
 			260,		// number of bytes to read
 			&len,		// address of number of bytes read
 			NULL		// non-overlapped.
 		) && len) {		//成功读取
-			char* lpc = buff;				//初始化字符串头
+			char* lpc = chbuff;				//初始化字符串头
 			while ('\n' != *(lpc++));		//取到换行位置
 			memcpy(md5, lpc, 32);			//赋值Md5
 			md5[32] = '\0';					//截断字符串
@@ -121,7 +122,7 @@ void* GetFilePtr(char* pPath, __int64& pSize, char* strSize /*= nullptr*/)
 		wsprintfA(strSize, "%s", pstr);
 	}
 	HANDLE	hHeap = GetProcessHeap();	//获取默认堆
-	LPVOID	lpMem = HeapAlloc(hHeap, 0, qwFileSize);
+	LPVOID	lpMem = HeapAlloc(hHeap, 0, (DWORD)qwFileSize);
 	if (!lpMem) {
 		MessageBoxA(0, "分配堆空间失败\n", 0, 0);
 	}

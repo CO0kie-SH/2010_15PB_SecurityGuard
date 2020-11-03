@@ -184,8 +184,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CController.h" />
+    <ClInclude Include="CMD5Checksum.h" />
     <ClInclude Include="CMyView.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="MD5ChecksumDefines.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SecurityGuard.h" />
@@ -194,6 +196,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CController.cpp" />
+    <ClCompile Include="CMD5Checksum.cpp" />
     <ClCompile Include="CMyView.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

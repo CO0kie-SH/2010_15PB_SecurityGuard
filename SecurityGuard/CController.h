@@ -1,5 +1,6 @@
 #pragma once
 #include "CMyView.h"
+#include "CMD5Checksum.h"
 
 
 static BOOL threadIsRun = FALSE;
