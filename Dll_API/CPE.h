@@ -148,6 +148,18 @@ typedef struct _PEExportTable
 
 
 
+typedef struct _PEImport_INFO
+{
+	DWORD	dwIndex;
+	DWORD	dwRVA;
+	DWORD	dwFOA;
+	DWORD   Thunk;			//IAT±íµÄRVA
+	WORD	wdHint;
+	char* pApiName;
+}PEImport_INFO, * LPPEImport_INFO;
+
+
+
 class DLLexp CPE
 {
 public:
@@ -163,7 +175,9 @@ public:
 
 	BOOL	GetTableInfo();
 	BOOL	GetExportInfo(vector<PEExport_INFO>& exportInfos);
+	BOOL	GetImportInfo(vector<PEImport_INFO>& importInfos);
 	//PTCHAR	GetNTHeadTCHAR(BYTE i);
+	void* GetDataDirectory(WORD i);
 public:
 	ULONGLONG		FOA;
 	BYTE			is32o64;

@@ -371,4 +371,135 @@ typedef struct _IMAGE_EXPORT_DIRECTORY {
 	}
 	return !exportInfos.empty();
 }
+
+
+/*
+	函数：获取导出表
+	返回：成功true，失败false
+	作者：CO0kie丶
+	时间：2020-11-03_14-00
+*/
+BOOL CPE::GetImportInfo(vector<PEImport_INFO>& importInfos)
+{
+
+	//结构体说明
+	/*
+typedef struct _IMAGE_IMPORT_DESCRIPTOR {	//导出表结构体
+	union {
+		DWORD   Characteristics;
+		DWORD   OriginalFirstThunk;		//1【★】指向结构体数组的RVA，结构体叫做
+										//输入名称表[INT:Import Name Table]
+										//结构体[IMAGE_THUNK_DATA]
+	} DUMMYUNIONNAME;
+	DWORD   TimeDateStamp;			//当可执行文件不与被输入的DLL进行绑定时,此字段为0
+	DWORD   ForwarderChain;			// -1 if no forwarders	转发机制用到
+									//第一个被转向的api的索引
+	DWORD   Name;					//4[有用]导入的PE文件的名字RVA
+	DWORD   FirstThunk;				//5【★】指向一个结构体数组的RVA，结构体叫做
+									//输入地址表[IAT:Import Address Table]
+									//与INT共用结构体[IMAGE_THUNK_DATA]
+									//在磁盘文件中与INT相同,可以看作INT是IAT的备份
+} IMAGE_IMPORT_DESCRIPTOR;
+typedef IMAGE_IMPORT_DESCRIPTOR UNALIGNED *PIMAGE_IMPORT_DESCRIPTOR;
+
+//3.在有些文件中输入名称表是空的，全零，什么都没有。
+//	这说明输入地址表有时没有备份。所以解析输入表时用IAT解析。
+
+typedef struct _IMAGE_THUNK_DATA32 {
+	union {
+		DWORD ForwarderString;		//转发时用到
+		DWORD Function;				//导入函数的地址，在加载到内存后起作用
+		DWORD Ordinal;				//假如是序号导入的，用到这里
+		DWORD AddressOfData;		//假如是函数名导入的，用这里，
+	} u1;							//指向一个结构体[IMAGE_IMPORT_BY_NAME]
+} IMAGE_THUNK_DATA32;
+typedef IMAGE_THUNK_DATA32 * PIMAGE_THUNK_DATA32;
+
+typedef struct _IMAGE_IMPORT_BY_NAME {
+	WORD    Hint;
+	CHAR   Name[1];
+} IMAGE_IMPORT_BY_NAME, *PIMAGE_IMPORT_BY_NAME;
+*/
+
+
+	if (FOA == 0)	return false;
+	PIMAGE_DATA_DIRECTORY dwImportDir =
+		(PIMAGE_DATA_DIRECTORY)GetDataDirectory(1);
+	if (dwImportDir == nullptr)	return false;
+
+	DWORD dwFOA = RvaToFoa(dwImportDir->VirtualAddress);	//得到区段表
+	PIMAGE_IMPORT_DESCRIPTOR pImportTable =					//获取导入表
+		(PIMAGE_IMPORT_DESCRIPTOR)(FOA + dwFOA);			//的内存地址
+
+
+
+
+	
+
+	dwFOA = RvaToFoa(pImportTable->Name);
+	PEImport_INFO tmp;
+	DWORD dwNum = 0;
+	constexpr char* pNULL = (char*)"-";
+	while (pImportTable->Name != 0)
+	{
+		dwFOA = RvaToFoa(pImportTable->Name);
+		tmp = { 0,pImportTable->Name,dwFOA,0,0,pNULL };
+		char* pDllName = (char*)FOA + dwFOA;
+		tmp.pApiName = pDllName;
+		importInfos.push_back(tmp);
+		tmp = PEImport_INFO{
+				++dwNum,
+				pImportTable->OriginalFirstThunk,
+				RvaToFoa(pImportTable->OriginalFirstThunk),
+				pImportTable->FirstThunk,
+				0,pNULL
+		};
+
+		PIMAGE_THUNK_DATA32 pNameTable = NULL;
+		dwFOA = RvaToFoa(pImportTable->FirstThunk);		//使用IAT解析
+		pNameTable = (PIMAGE_THUNK_DATA32)(FOA + dwFOA);
+		while (pNameTable->u1.Ordinal != 0)
+		{
+			tmp.dwIndex = ++dwNum;
+			tmp.pApiName = pNULL;
+			dwFOA = RvaToFoa(pNameTable->u1.Ordinal);
+			if (IMAGE_SNAP_BY_ORDINAL(pNameTable->u1.Ordinal) == 1)
+			{
+				tmp.Thunk = pNameTable->u1.AddressOfData;
+			}
+			else
+			{
+				PIMAGE_IMPORT_BY_NAME pName = (PIMAGE_IMPORT_BY_NAME)(FOA + dwFOA);
+				tmp.Thunk = pNameTable->u1.Ordinal;
+				tmp.wdHint = pName->Hint;
+				tmp.pApiName = pName->Name;
+			}
+			importInfos.push_back(tmp);
+			++pNameTable;
+			tmp.dwRVA += 4;	tmp.dwFOA += 4;
+		}
+		++pImportTable;
+	}
+	return !importInfos.empty();
+}
+
+/*
+	函数：获取PE目录表
+	时间：11-03_16-05
+*/
+void* CPE::GetDataDirectory(WORD i)
+{
+	if (FOA == 0)	return nullptr;
+	PIMAGE_OPTIONAL_HEADER32 pOption32 = (PIMAGE_OPTIONAL_HEADER32)
+		&_pNt->OptionalHeader;
+	PIMAGE_OPTIONAL_HEADER64 pOption64 = (PIMAGE_OPTIONAL_HEADER64)
+		&_pNt->OptionalHeader;
+
+	PIMAGE_DATA_DIRECTORY pTable = this->is32o64 == 32 ? pOption32->DataDirectory :
+		this->is32o64 == 64 ? pOption64->DataDirectory : nullptr;
+	if (pTable == nullptr)	return nullptr;
+
+	pTable += i;
+	return (char*)pTable;
+}
 #pragma endregion

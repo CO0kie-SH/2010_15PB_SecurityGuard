@@ -253,6 +253,31 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 		}	//IF END：PE导出表处理
 		else if (tInfo.str == gszPEFunctions[gdsz_PE导入表信息]) {
 			this->InitList(tInfo, true);
+			vector<PEImport_INFO> importInfos;
+			if (this->m_CPE.GetImportInfo(importInfos)) {
+				i = importInfos.size();
+				TCHAR buff[33];
+				while (i--)
+				{
+					this->m_PVList->InsertItem(0, _T(""));
+					mbstowcs_s(nullptr, buff, importInfos[i].pApiName, 33);
+					this->m_PVList->SetItemText(0, 1, buff);
+					m_str.Format(_T("%08lX"), importInfos[i].dwRVA);
+					this->m_PVList->SetItemText(0, 2, m_str);
+					m_str.Format(_T("%08lX"), importInfos[i].dwFOA);
+					this->m_PVList->SetItemText(0, 3, m_str);
+					m_str.Format(_T("%08lX"), importInfos[i].Thunk);
+					this->m_PVList->SetItemText(0, 4, m_str);
+
+					if (importInfos[i].dwIndex)
+					{
+						m_str.Format(_T("%03lu"), importInfos[i].dwIndex);
+						this->m_PVList->SetItemText(0, 0, m_str);
+						m_str.Format(_T("%08lX"), importInfos[i].wdHint);
+						this->m_PVList->SetItemText(0, 5, m_str);
+					}
+				}	//While END；
+			}
 		}	//IF END：PE导入表处理
 	}	//IF END：PE信息处理
 	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree	//如果树根为进程
@@ -375,10 +400,11 @@ void CMyView::InitList(const MyTreeInfo& tInfo, bool isRef)
 			this->m_PVList->InsertColumn(0, _T("Api名"), LVCFMT_LEFT, 123);
 		}
 		else if (tInfo.str == gszPEFunctions[gdsz_PE导入表信息]) {	//PE导出表信息
-			this->m_PVList->InsertColumn(0, _T("大小"), LVCFMT_LEFT, 123);
+			this->m_PVList->InsertColumn(0, _T("Hint"), LVCFMT_LEFT, 123);
+			this->m_PVList->InsertColumn(0, _T("Thunk"), LVCFMT_LEFT, 123);
+			this->m_PVList->InsertColumn(0, _T("FOA"), LVCFMT_LEFT, 123);
 			this->m_PVList->InsertColumn(0, _T("RVA"), LVCFMT_LEFT, 123);
 			this->m_PVList->InsertColumn(0, _T("Api名"), LVCFMT_LEFT, 123);
-			this->m_PVList->InsertColumn(0, _T("DLL名"), LVCFMT_LEFT, 123);
 		}
 	}	//IF END：PE信息集
 	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree		//如果树根为进程
