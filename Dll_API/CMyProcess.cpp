@@ -18,7 +18,8 @@ CMyProcess::~CMyProcess()
 	作者：CO0kie丶
 	时间：2020-11-01_22-35
 */
-BOOL CMyProcess::EnumProcess(vector<PROCESSINFO>& proInfos, bool bGetMod /*= false*/)
+BOOL CMyProcess::EnumProcess(vector<PROCESSINFO>& proInfos,
+	bool bGetMod /*= false*/, bool bCleanMem /*= false*/)
 {
 	HANDLE hToolHelp = CreateToolhelp32Snapshot(
 		TH32CS_SNAPPROCESS, 0);
@@ -54,6 +55,17 @@ typedef struct tagPROCESSENTRY32W
 		};
 		wsprintf(tmp.name, _T("%s"), pe.szExeFile);
 		proInfos.push_back(tmp);
+
+
+		//参考 https://blog.csdn.net/paschen/article/details/52829867
+		if (bCleanMem) {
+			HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe.th32ProcessID);
+			if (hProcess)
+			{
+				::SetProcessWorkingSetSize(hProcess, (SIZE_T)-1, (SIZE_T)-1);
+				::CloseHandle(hProcess);
+			}
+		}
 	} while (Process32Next(hToolHelp, &pe));
 	CloseHandle(hToolHelp);
 	return !proInfos.empty();

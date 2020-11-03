@@ -137,6 +137,42 @@ void* GetFilePtr(char* pPath, __int64& pSize, char* strSize /*= nullptr*/)
 	HeapFree(hHeap, 0, lpMem);	lpMem = nullptr;
 	return nullptr;
 }
+
+double FILETIME2Double(const _FILETIME& fileTime)
+{
+	return double(fileTime.dwHighDateTime * 4.294967296e9) + double(fileTime.dwLowDateTime);
+}
+
+
+
+/*
+	函数：获取CPU状态
+	作者：Github：havocykp
+*/
+float GetCpuUsage()
+{
+	//		    空闲事件  内核事件   用户事件
+	_FILETIME  idleTime, kernelTime, userTime;
+	//获取时间
+	GetSystemTimes(&idleTime, &kernelTime, &userTime);
+	//等待1000毫秒
+	HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	if (!hEvent)	return 0.0f;
+	WaitForSingleObject(hEvent, 1000);
+	//获取新的时间
+	_FILETIME  newIdleTime, newKernelTime, newUserTime;
+	GetSystemTimes(&newIdleTime, &newKernelTime, &newUserTime);
+	//将各个时间转换
+	double dOldIdleTime = FILETIME2Double(idleTime);
+	double dNewIdleTime = FILETIME2Double(newIdleTime);
+	double dOldKernelTime = FILETIME2Double(kernelTime);
+	double dNewKernelTime = FILETIME2Double(newKernelTime);
+	double dOldUserTime = FILETIME2Double(userTime);
+	double dNewUserTime = FILETIME2Double(newUserTime);
+	//计算出使用率
+	return  float(100.0 - (dNewIdleTime - dOldIdleTime) /
+		(dNewKernelTime - dOldKernelTime + dNewUserTime - dOldUserTime) * 100.0);
+}
 #pragma endregion
 
 

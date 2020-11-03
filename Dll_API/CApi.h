@@ -17,6 +17,11 @@ DWORD	GetMd5_ByCertutil(char* pPath, char md5[33]);
 extern "C" _declspec(dllexport)
 void*	GetFilePtr(char* pPath, __int64& pSize, char* strSize = nullptr);
 
+extern double FILETIME2Double(const _FILETIME& fileTime);
+
+extern "C" _declspec(dllexport)
+float GetCpuUsage();
+
 class CApi
 {
 };
