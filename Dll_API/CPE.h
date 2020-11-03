@@ -10,7 +10,9 @@ enum _EnumPE功能区
 {
 	gdsz_PE文件头,
 	gdsz_PE区段信息,
-	gdsz_PE目录信息
+	gdsz_PE目录信息,
+	gdsz_PE导入表信息,
+	gdsz_PE导出表信息
 };
 
 
@@ -78,25 +80,6 @@ constexpr	PTCHAR	gszTablesInfos[] = {
 	(PTCHAR)_T("保留")
 };
 
-/*
-#define	defszPE_00入口点			(char*)"入口点："
-#define	defszPE_01镜像地址		(char*)"镜像地址："
-#define	defszPE_02镜像大小		(char*)"镜像大小："
-#define	defszPE_03代码基址		(char*)"代码基址："
-#define	defszPE_04数据基址		(char*)"数据基址："
-#define	defszPE_05快对齐			(char*)"快对齐："
-#define	defszPE_06文件对齐		(char*)"文件对齐："
-#define	defszPE_07标志字			(char*)"标志字："
-#define	defszPE_08子系统			(char*)"子系统："
-#define	defszPE_09区段数目		(char*)"区段数目："
-#define	defszPE_10日期时间标志	(char*)"日期时间标志："
-#define	defszPE_11首部大小		(char*)"首部大小："
-#define	defszPE_12特征值			(char*)"特征值："
-#define	defszPE_13校验和			(char*)"校验和："
-#define	defszPE_14可选头部大小	(char*)"可选头部大小："
-#define	defszPE_15RVA数及大小		(char*)"RVA数及大小："
-*/
-
 enum IDXPEINFO
 {
 	Idx00入口点 = 0,
@@ -116,7 +99,6 @@ enum IDXPEINFO
 	Idx14可选头部大小 = 14,
 	Idx15RVA数及大小 = 15,
 };
-
 
 
 typedef struct _NTHead_INFO
@@ -143,8 +125,26 @@ typedef struct _PETables_INFO
 {
 	DWORD	dwRVA	[gdefTableInfos_MAX];
 	DWORD	dwSize	[gdefTableInfos_MAX];
-	PTCHAR	chName	[gdefTableInfos_MAX];
 }PETables_INFO, * LPPETables_INFO;
+
+
+
+typedef struct _PEExport_INFO
+{
+	DWORD	dwIndex;
+	DWORD	dwRVA;
+	DWORD	dwFOA;
+	char*	pApiName;
+}PEExport_INFO, * LPPEExport_INFO;
+
+
+typedef struct _PEExportTable
+{
+	DWORD	dwRVA;
+	DWORD	dwNums;
+	DWORD	dwNumsName;
+	char*	pDLLName;
+}PEExportTable, * LPPEExportTable;
 
 
 
@@ -159,7 +159,10 @@ public:
 	BOOL	GetNTHeadInfo();
 	DWORD	RvaToFoa(DWORD dwRva, bool isPrint = false,
 		vector<ZONE_INFO>* zoneInfos = nullptr);
+
+
 	BOOL	GetTableInfo();
+	BOOL	GetExportInfo(vector<PEExport_INFO>& exportInfos);
 	//PTCHAR	GetNTHeadTCHAR(BYTE i);
 public:
 	ULONGLONG		FOA;
@@ -167,6 +170,7 @@ public:
 	NTHead_INFO		NTHead_Info;
 	ZONE_INFO		ZONE_Info;
 	PETables_INFO	Table_Info;
+	PEExportTable	ExportTable;
 private:
 	char*				_pFile = nullptr;
 	__int64				_FileSize = 0;

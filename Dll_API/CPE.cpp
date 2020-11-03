@@ -9,6 +9,7 @@ CPE::CPE() :FOA(0), is32o64(0)
 {
 	ZeroMemory(&this->NTHead_Info, sizeof(NTHead_INFO));
 	ZeroMemory(&this->ZONE_Info, sizeof(ZONE_INFO));
+	ZeroMemory(&this->ExportTable, sizeof(PEExportTable));
 }
 
 
@@ -208,8 +209,8 @@ typedef struct _IMAGE_SECTION_HEADER {
 	PIMAGE_SECTION_HEADER pHeader = IMAGE_FIRST_SECTION(_pNt);
 	if (dwRva > 400 && dwRva < _pNt->OptionalHeader.SizeOfHeaders)
 		return dwRva;
-	else if (dwRva > 0x05 || dwRva > _pNt->OptionalHeader.SizeOfHeaders)
-		return NULL;
+	else if (dwRva > 0x05 && dwRva < _pNt->OptionalHeader.SizeOfHeaders)
+		return dwRva;
 	char buff[MAX_PATH];
 	for (DWORD i = 0; i < _pNt->FileHeader.NumberOfSections; ++i)
 	{
@@ -247,9 +248,19 @@ typedef struct _IMAGE_SECTION_HEADER {
 			mbstowcs_s(nullptr, this->ZONE_Info.chName, buff, 8);
 			zoneInfos->push_back(this->ZONE_Info);
 		}
+		if (dwRva >= dwSectionRva && dwRva < dwSectionEnd) {
+			return dwFOA;
+		}
 	}
 	return NULL;
 }
+
+/*
+	函数：获取目录表
+	返回：成功true，失败false
+	作者：CO0kie丶
+	时间：2020-11-03_09-00
+*/
 BOOL CPE::GetTableInfo()
 {
 	if (FOA == 0)	return false;
@@ -272,12 +283,92 @@ BOOL CPE::GetTableInfo()
 	{
 		pdwRVA[i] = pTable->VirtualAddress;
 		pdwSize[i] = pTable->Size;
-		Table_Info.chName[i] = gszTablesInfos[i];
+		//Table_Info.chName[i] = gszTablesInfos[i];
 		//wsprintf(buff, _T("%d\t%08lX\t"),i, pTable->VirtualAddress);
 		//OutputDebugString(buff);
 		//wsprintf(buff, _T("%08lX\n"), pTable->Size);
 		//OutputDebugString(buff);
 	}
 	return true;
+}
+
+/*
+	函数：获取导出表
+	返回：成功true，失败false
+	作者：CO0kie丶
+	时间：2020-11-03_14-00
+*/
+BOOL CPE::GetExportInfo(vector<PEExport_INFO>& exportInfos)
+{
+	if (FOA == 0)	return false;
+	PIMAGE_OPTIONAL_HEADER32 pOption32 = (PIMAGE_OPTIONAL_HEADER32)
+		&_pNt->OptionalHeader;
+	PIMAGE_OPTIONAL_HEADER64 pOption64 = (PIMAGE_OPTIONAL_HEADER64)
+		&_pNt->OptionalHeader;
+
+	PIMAGE_DATA_DIRECTORY pTable = this->is32o64 == 32 ? pOption32->DataDirectory :
+		this->is32o64 == 64 ? pOption64->DataDirectory : nullptr;
+	if (pTable == nullptr)	return false;
+
+
+	DWORD dwExportFOA = RvaToFoa(pTable->VirtualAddress);
+	PIMAGE_EXPORT_DIRECTORY pExport = (PIMAGE_EXPORT_DIRECTORY)(FOA + dwExportFOA);
+	//	导出表结构体
+	/*
+typedef struct _IMAGE_EXPORT_DIRECTORY {
+	DWORD   Characteristics;	//1 没用 为0
+	DWORD   TimeDateStamp;		//2 没用 和文件头时间一样
+	WORD    MajorVersion;		//3 没用 主版本号
+	WORD    MinorVersion;		//4 没用 次版本号
+	DWORD   Name;				//5[有用]模块DLL名
+	DWORD   Base;				//6[有用]函数的起始序号
+	DWORD   NumberOfFunctions;	//7【★】函数数量
+	DWORD   NumberOfNames;		//8【★】函数名数量
+	DWORD   AddressOfFunctions;		//09【★】函数地址表RVA
+	DWORD   AddressOfNames;			//10【★】函数名称表RVA
+	DWORD   AddressOfNameOrdinals;	//11【★】函数序号表RVA
+} IMAGE_EXPORT_DIRECTORY, *PIMAGE_EXPORT_DIRECTORY;
+*/
+
+	
+	DWORD EatFoa = RvaToFoa(pExport->AddressOfFunctions);
+	DWORD EntFoa = RvaToFoa(pExport->AddressOfNames);
+	DWORD EotFoa = RvaToFoa(pExport->AddressOfNameOrdinals);
+	//导出函数地址表
+	//导出函数名称表
+	//导出函数序号表
+	PDWORD	pEat = (PDWORD)(FOA + EatFoa);
+	PDWORD	pEnt = (PDWORD)(FOA + EntFoa);
+	PWORD	pEot = (PWORD)(FOA + EotFoa);
+	DWORD	dwFoa = RvaToFoa(pExport->Name);
+	if (dwFoa == 0)	return false;
+
+
+	this->ExportTable.pDLLName = (char*)FOA + dwFoa;
+	//TCHAR buff[MAX_PATH];
+	PEExport_INFO tmp;	
+	for (DWORD i = 0; i < pExport->NumberOfFunctions; i++)
+	{
+		//ZeroMemory(&tmp, sizeof(PEExport_INFO));
+		//wsprintf(buff, _T("\n%lu\t序号表RVA=0x%lX\t"), i + 1, pEat[i]);
+		//OutputDebugString(buff);
+		if (pEat[i] == 0)	continue;
+		tmp = PEExport_INFO{
+			i + 1, pEat[i], RvaToFoa(pEat[i]),(char*)"-"
+		};
+		//OutputDebugString(_T("名称表：\n"));
+		for (DWORD j = 0; j < pExport->NumberOfFunctions; j++)
+		{
+			//wsprintf(buff, _T("%lu\t名称表%lu\n"), j + 1, pEot[j]);
+			//OutputDebugString(buff);
+			if (i == pEot[j]) {
+				dwFoa = RvaToFoa(pEnt[j]);
+				tmp.pApiName = (char*)FOA + dwFoa;
+				break;
+			}
+		}
+		exportInfos.push_back(tmp);
+	}
+	return !exportInfos.empty();
 }
 #pragma endregion
