@@ -82,7 +82,9 @@ public:
 	void* GetPVMenu() {
 		return m_PVMenu;
 	};
-
+	void* GetPVList() {
+		return m_PVList;
+	};
 protected:
 	WindStatu	m_Statu;				//视图状态
 	CMyFile		m_CFile;				//文件类

@@ -103,3 +103,7 @@ static unsigned char PADDING[64] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
+
+constexpr int nMD5Size = 16;
+constexpr char* sscafX = "%02X";
+constexpr char* sscafx = "%02x";

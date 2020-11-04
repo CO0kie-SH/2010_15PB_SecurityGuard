@@ -44,6 +44,66 @@ CString CMD5Checksum::GetMD5(const CString& strFilePath)
 	}
 }
 
+BOOL CMD5Checksum::GetMd5(char* pChar, char pMd5[33],
+	__int64 ulLen /*= 0*/, CMD5Checksum* pCMD5 /*= nullptr*/)
+{
+	if (ulLen == 0)
+		ulLen = strlen(pChar);
+	if (ulLen == 0)
+		return false;
+	if (!pCMD5) {
+		CMD5Checksum MD5Checksum;   //checksum object 
+		pCMD5 = &MD5Checksum;
+	}
+	//ULONG len = (ULONG)ulLen + 1;
+	
+	BYTE* Buffer = (BYTE*)pChar;   //buffer for data read from the file
+	//Buffer = (BYTE*)(strString.GetBuffer(nLength));
+	
+	//checksum the file in blocks of 1024 bytes
+	//while ((nLength = File.Read( Buffer, nBufferSize )) > 0 )
+	//{ 
+	if (ulLen < 1024)
+		pCMD5->Update(Buffer, (ULONG)ulLen);
+	else
+	{
+		for (__int64 i = 0; i < ulLen; i += 1024)
+		{
+			pCMD5->Update(Buffer, 1024);
+			Buffer += 1024;
+		}
+	}
+	//MD5Checksum.Update(Buffer, nLength);
+	//}
+	//finalise the checksum and return it
+	//return MD5Checksum.Final();
+
+	return pCMD5->Final2(pMd5);
+}
+
+BOOL CMD5Checksum::GetMd5(CFile& cFile, char pMd5[33], CMD5Checksum* pCMD5)
+{
+	if (!pCMD5) {
+		CMD5Checksum MD5Checksum;   //checksum object 
+		pCMD5 = &MD5Checksum;
+	}
+	//CFile file;
+	//if (cFile.Open(strFilePath, CFile::modeRead) == 0)
+	//	return false;
+
+	int nLength = 0;       //number of bytes read from the file
+	const int nBufferSize = 1024; //checksum the file in blocks of 1024 bytes
+	BYTE Buffer[nBufferSize];   //buffer for data read from the file
+
+	//checksum the file in blocks of 1024 bytes
+	while ((nLength = cFile.Read(Buffer, nBufferSize)) > 0)
+	{
+		pCMD5->Update(Buffer, nLength);
+	}
+	return pCMD5->Final2(pMd5);
+	//return bRet;
+}
+
 /*****************************************************************************************
 FUNCTION:  CMD5Checksum::RotateLeft
 DETAILS:  private
@@ -384,6 +444,32 @@ CString CMD5Checksum::Final()
 	}
 	ASSERT(strMD5.GetLength() == 32);
 	return strMD5;
+}
+
+BOOL CMD5Checksum::Final2(char pMd5[33], bool isXorx)
+{
+	//Save number of bits
+	BYTE Bits[8];
+	DWordToByte(Bits, m_nCount, 8);
+
+	//Pad out to 56 mod 64.
+	UINT nIndex = (UINT)((m_nCount[0] >> 3) & 0x3f);
+	UINT nPadLen = (nIndex < 56) ? (56 - nIndex) : (120 - nIndex);
+	Update(PADDING, nPadLen);
+
+	//Append length (before padding)
+	Update(Bits, 8);
+
+	unsigned char lpszMD5[nMD5Size];
+	DWordToByte(lpszMD5, m_lMD5, nMD5Size);
+
+	char* scanf = (char*)(isXorx ? sscafX : sscafx);
+	char* pmd5 = pMd5;
+	for (BYTE i = 0; i < 16;  pmd5 += 2)
+		sprintf_s(pmd5, 3, scanf, lpszMD5[i++]);
+	
+	//ASSERT(strMD5.GetLength() == 32);
+	return strlen(pMd5) == 32;
 }
 
 

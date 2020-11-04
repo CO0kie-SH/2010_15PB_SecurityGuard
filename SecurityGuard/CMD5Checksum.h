@@ -12,10 +12,12 @@
 class CMD5Checksum
 {
 public:
+	friend class CController;
 	static CString GetMD5OfString(CString strString);
 	//interface functions for the RSA MD5 calculation
 	static CString GetMD5(const CString& strFilePath);
-
+	static BOOL	GetMd5(char* pChar, char pMd5[33], __int64 ulLen = 0, CMD5Checksum* pCMD5 = nullptr);
+	static BOOL	GetMd5(CFile& cFile, char pMd5[33], CMD5Checksum* pCMD5 = nullptr);
 protected:
 	//constructor/destructor
 	CMD5Checksum();
@@ -25,6 +27,7 @@ protected:
 	void Transform(BYTE Block[64]);
 	void Update(BYTE* Input, ULONG nInputLen);
 	CString Final();
+	BOOL Final2(char pMd5[33], bool isXorx = true);
 	inline DWORD RotateLeft(DWORD x, int n);
 	inline void FF(DWORD& A, DWORD B, DWORD C, DWORD D, DWORD X, DWORD S, DWORD T);
 	inline void GG(DWORD& A, DWORD B, DWORD C, DWORD D, DWORD X, DWORD S, DWORD T);

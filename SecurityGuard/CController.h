@@ -8,6 +8,7 @@ static BOOL threadIsRunSearch = FALSE;
 
 DWORD CALLBACK WorkerThread(LPVOID lpThreadParameter);
 DWORD CALLBACK WorkerThread2(LPVOID lpThreadParameter);
+DWORD CALLBACK WorkerThread4(LPVOID lpThreadParameter);
 void CALLBACK TimerProcMy(HWND hWnd, UINT nMsg, UINT nTimerid, DWORD dwTime);
 
 static __int64 iDirNum = 0, iFileNum = 0, iSize = 0;
@@ -24,8 +25,6 @@ public:
 	static void FileCallBack(LPFILEINFO pFileInfo);
 	void DoSomeTreeRight(HTREEITEM& hTree, CPoint& point);
 
-
-	BOOL GetCFileMd5(CString& str);
 private:
 	LPSERVICEINFO	_lpServiceInfo = nullptr;
 	HANDLE			m_hthread = 0;
