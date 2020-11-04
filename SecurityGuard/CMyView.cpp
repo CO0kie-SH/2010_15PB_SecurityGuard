@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "CMyView.h"
-
+#include "CController.h"
 
 CMyView gView;
 
@@ -28,7 +28,7 @@ void CMyView::Init(CDialogEx* wMain)
 		LVS_EX_GRIDLINES |
 		LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 	this->m_PVTree = (CTreeCtrl*)wMain->GetDlgItem(IDC_TREE1);
-
+	this->m_PVEdit = (CEditView*)m_Main->GetDlgItem(IDC_EDIT1);
 	PMyTreeInfo tmp = (PMyTreeInfo)this->m_tRoot;
 	while (tmp->uiDeep == 0)
 	{
@@ -155,8 +155,8 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 		OutputDebugString(_T("\tDo搜索文件\n"));
 		CString strPath;	UINT deep = tInfo.uiDeep;	//初始化路径和深度
 		GetTreePath(tInfo.htTree, deep, strPath);		//通过树干获取路径
-		CEditView* edit = (CEditView*)m_Main->GetDlgItem(IDC_EDIT1);
-		edit->SetWindowTextW(strPath);					//将路径设置为编辑框
+		
+		this->m_PVEdit->SetWindowTextW(strPath);		//将路径设置为编辑框
 		vector<FILEINFO> FLs;							//初始化数组
 
 		bool bSearchSucc = m_CFile.SearchPaths(FLs,		//搜索目录+*
@@ -171,6 +171,7 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 				if (!pInfo->isDir)	continue;
 				tmp.htTree = m_PVTree->InsertItem(
 					pInfo->data.cFileName, hTree);
+				tmp.str = pInfo->data.cFileName;
 				m_tLeafs[tmp.htTree] = tmp;
 			}
 			m_PVTree->Expand(hTree, TVE_EXPAND);			//循环完毕后展开树枝
@@ -329,9 +330,7 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 			//https://blog.csdn.net/hongweigg/article/details/52238411
 		}
 		else if (tInfo.str == gszRBFunctions[gdsz_VS垃圾清理]) {
-
-			//ShellExecute(NULL, _T("open"), _T("cmd.exe"),
-			//	_T("/c ping 127.0.0.1"), NULL, SW_SHOW);
+			gCtrl.DoSomeMenu(ID_32785);
 		}
 	}	//IF END：垃圾信息处理
 	else if (tInfo.hrTree == this->m_tRoot->fService.htTree		//如果树根为服务区

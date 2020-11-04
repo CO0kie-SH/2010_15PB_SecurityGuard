@@ -23,7 +23,7 @@ DWORD CALLBACK WorkerThread(LPVOID lpThreadParameter)
 			swprintf_s(buff, MAX_PATH, L"CPU：%.1f%%，内存：%lu%%",
 				fcpu, statex.dwMemoryLoad);
 
-			menu->ModifyMenu(3, MF_BYPOSITION, ID_32777, buff);
+			menu->ModifyMenu(5, MF_BYPOSITION, ID_32777, buff);
 			DrawMenuBar(wMain);
 			//OutputDebugString(buff);
 		}
@@ -48,6 +48,7 @@ CController::CController()
 CController::~CController()
 {
 	threadIsRun = FALSE;
+	UnregisterHotKey(this->m_wMain, 1234);
 	WaitForSingleObject(m_hthread, 3000);
 }
 
@@ -63,6 +64,8 @@ void CController::Init(HWND hWnd)
 		ExitProcess(0x01);
 		return;
 	}
+	RegisterHotKey(hWnd, 1234, MOD_CONTROL | MOD_ALT, 'Q');
+
 	this->m_wMain = hWnd;
 	threadIsRun = TRUE;
 	//SetTimer(hWnd, 1, 1000, (TIMERPROC)TimerProcMy);
@@ -90,7 +93,7 @@ void CController::DoSomeThingList(LPNMITEMACTIVATE& pNMItem)
 
 		CMenu cMenu;
 		cMenu.LoadMenuW(IDR_MENU1);
-		CMenu* pSubMenu1 = cMenu.GetSubMenu(2);
+		CMenu* pSubMenu1 = cMenu.GetSubMenu(3);
 		_lpServiceInfo = &gView.m_serviceInfos[pNMItem->iItem];
 		pSubMenu1->AppendMenu(MF_GRAYED, MF_POPUP,
 			_lpServiceInfo->lpDisplayName);
@@ -129,7 +132,9 @@ void CController::DoSomeMenu(UINT nID)
 				gView.DoSomeThingTree(gView.m_Statu.tKind.htTree);
 			}
 		break;
-	case ID_32776: {		//刷新
+	case ID_32776: {		//刷新->退出
+		threadIsRun = false;
+		SendMessageW(this->m_wMain, 16, 0, 0);
 		//CString strRet, strPath;
 		//strPath = L"D:\\15pb\\del.bat";
 		//strRet = CMD5Checksum::GetMD5(strPath);
@@ -143,8 +148,41 @@ void CController::DoSomeMenu(UINT nID)
 			MessageBox(m_wMain, bRet ? _T("成功") : _T("失败"), _T("提示"), 0);
 		}
 	}break;
+	case ID_32785: {		//清理VS垃圾
+		if (!PathFileExists(gView.m_str))	return;		//如果文件不存在则返回
+		if (!PathIsDirectory(gView.m_str))	return;		//如果目录不存在则返回
+
+		CString strCMD = _T("/k title \"请确认以下路径，然后按任意键删除。\" &&");
+		strCMD += _T("echo \"请确认以下路径，然后按任意键删除。\"&&echo %cd%\\&& pause &&");
+		strCMD += _T("del /s  *.ilk *.pdb *.obj *.log *.pch *.tlog");
+		strCMD += _T(" *.lastbuildstate *.sdf *.idb *.ipch *.res");
+		strCMD += _T(" *.o *.lst *.knl *.img *.bin *.db");/* *.exe");*/
+		//strCMD += _T("&& pause");
+		ShellExecute(m_wMain,
+			_T("open"), _T("C:\\Windows\\System32\\cmd.exe"),
+			strCMD, gView.m_str, SW_SHOW);
+	}break;
 	default:
 		break;
+	}
+}
+void CController::DoSomeTreeRight(HTREEITEM& hTree, CPoint& point)
+{
+	MyTreeInfo& tInfo = gView.m_tLeafs[hTree];
+	if (!tInfo.hrTree)	return;
+	if (tInfo.hrTree == gView.m_tRoot->fFile.htTree) {
+		CString strPath;	UINT deep = tInfo.uiDeep;
+		gView.m_str = _T("");
+		gView.GetTreePath(hTree, deep, gView.m_str);
+		//gView.m_PVList->ClientToScreen(&point);
+
+		CMenu cMenu;
+		cMenu.LoadMenuW(IDR_MENU1);
+		CMenu* pSubMenu1 = cMenu.GetSubMenu(2);
+
+		pSubMenu1->AppendMenu(MF_GRAYED, MF_POPUP,
+			gView.m_str);
+		pSubMenu1->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, gView.m_Main);
 	}
 }
 #pragma endregion

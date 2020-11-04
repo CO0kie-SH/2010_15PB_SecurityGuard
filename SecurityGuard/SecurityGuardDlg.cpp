@@ -68,7 +68,9 @@ BEGIN_MESSAGE_MAP(CSecurityGuardDlg, CDialogEx)
 	ON_NOTIFY(NM_DBLCLK, IDC_TREE1, &CSecurityGuardDlg::OnNMDblclkTree1)
 	ON_NOTIFY(NM_RCLICK, IDC_LIST1, &CSecurityGuardDlg::OnNMRClickList1)
 	//ON_COMMAND(ID_32774, &CSecurityGuardDlg::OnClickMenu)
-	ON_COMMAND_RANGE(ID_32772,ID_32777, &CSecurityGuardDlg::OnClickMenu)
+	ON_COMMAND_RANGE(ID_32772, ID_32787, &CSecurityGuardDlg::OnClickMenu)
+	ON_WM_HOTKEY()
+	ON_NOTIFY(NM_RCLICK, IDC_TREE1, &CSecurityGuardDlg::OnNMRClickTree1)
 END_MESSAGE_MAP()
 
 
@@ -107,6 +109,7 @@ BOOL CSecurityGuardDlg::OnInitDialog()
 	//this->ShowWindow(SW_HIDE);
 	gView.Init(this);
 	gCtrl.Init(this->GetSafeHwnd());
+	//m_hAcc = LoadAccelerators(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_ACCELERATOR1));
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -203,4 +206,43 @@ void CSecurityGuardDlg::OnClickMenu(UINT nID)
 {
 	// TODO: 在此添加命令处理程序代码
 	gCtrl.DoSomeMenu(nID);
+}
+
+
+
+void CSecurityGuardDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	switch (nHotKeyId) {
+	case 1234: {
+		bool isV = IsWindowVisible();
+		ShowWindow(isV ? SW_HIDE : SW_SHOW);
+	}break;
+	default:
+		break;
+	}
+	CDialogEx::OnHotKey(nHotKeyId, nKey1, nKey2);
+}
+
+
+void CSecurityGuardDlg::OnNMRClickTree1(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if (pNMHDR->idFrom == IDC_TREE1) {
+		CTreeCtrl* pTree = (CTreeCtrl*)GetDlgItem(IDC_TREE1);
+		ASSERT_VALID(pTree);
+
+		CPoint point;
+		GetCursorPos(&point);
+		CPoint pointInTree = point;
+		pTree->ScreenToClient(&pointInTree);
+		HTREEITEM item;
+		UINT flag = TVHT_ONITEM;
+		item = pTree->HitTest(pointInTree, &flag);
+		if (item != NULL) {
+			gCtrl.DoSomeTreeRight(item, point);
+			pTree->SelectItem(item);
+		}
+	}
+	*pResult = 0;
 }

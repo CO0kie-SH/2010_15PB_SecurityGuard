@@ -16,6 +16,7 @@ public:
 	void Init(HWND hWnd);
 	void DoSomeThingList(LPNMITEMACTIVATE& pNMItem);
 	void DoSomeMenu(UINT nID);
+	void DoSomeTreeRight(HTREEITEM& hTree, CPoint& point);
 private:
 	LPSERVICEINFO	_lpServiceInfo = nullptr;
 	HANDLE			m_hthread = 0;

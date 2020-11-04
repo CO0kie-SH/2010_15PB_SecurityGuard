@@ -36,4 +36,6 @@ public:
 	afx_msg void OnNMRClickList1(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnClickMenu();
 	afx_msg void OnClickMenu(UINT nID);
+	afx_msg void OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2);
+	afx_msg void OnNMRClickTree1(NMHDR* pNMHDR, LRESULT* pResult);
 };
