@@ -181,8 +181,11 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 		&& tInfo.uiDeep == 1) {								//且深度==1
 
 		if (tInfo.str == gszPEFunctions[gdsz_PE文件头]) {
-			m_CPE.Init(DLLP32);
-			
+			this->m_PVEdit->GetWindowTextW(this->m_str);
+			if (!m_CPE.Init(this->m_str.GetBuffer())) {
+				this->m_Main->MessageBox(L"初始化PE失败");
+				return;
+			}
 			if (m_CPE.GetNTHeadInfo()) {
 				this->InitList(m_CPE.NTHead_Info);
 			}

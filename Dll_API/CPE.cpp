@@ -21,6 +21,10 @@ CPE::~CPE()
 
 BOOL CPE::Init(char* pFilePath)
 {
+	FOA = 0;	is32o64 = 0;
+	ZeroMemory(&this->NTHead_Info, sizeof(NTHead_INFO));
+	ZeroMemory(&this->ZONE_Info, sizeof(ZONE_INFO));
+	ZeroMemory(&this->ExportTable, sizeof(PEExportTable));
 	if (_pFile)
 		HeapFree(GetProcessHeap(), 0, _pFile);
 	_pFile = (char*)GetFilePtr(pFilePath, this->_FileSize);
@@ -448,7 +452,7 @@ typedef struct _IMAGE_IMPORT_BY_NAME {
 		tmp.pApiName = pDllName;
 		importInfos.push_back(tmp);
 		tmp = PEImport_INFO{
-				++dwNum,
+				dwNum,
 				pImportTable->OriginalFirstThunk,
 				RvaToFoa(pImportTable->OriginalFirstThunk),
 				pImportTable->FirstThunk,

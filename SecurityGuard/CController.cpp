@@ -152,7 +152,25 @@ void CController::DoSomeThingList(LPNMITEMACTIVATE& pNMItem)
 			_lpServiceInfo->lpDisplayName);
 		pSubMenu1->TrackPopupMenu(TPM_LEFTALIGN, xy.x, xy.y, gView.m_Main);
 		
-	}
+	}	//IF END：服务处理
+	else if (gView.m_Statu.tKind.hrTree == gView.m_tRoot->fFile.htTree) {
+		gView.m_str = gView.m_PVList->GetItemText(pNMItem->iItem, 2);
+		CString str = PathFindExtensionW(gView.m_str);
+		str = str.MakeLower();
+		if (0 == _tcscmp(str, _T(".dll")) ||
+			0 == _tcscmp(str, _T(".exe")))
+		{
+			POINT xy = { pNMItem->ptAction.x, pNMItem->ptAction.y };
+			gView.m_PVList->ClientToScreen(&xy);
+			CMenu cMenu;
+			cMenu.LoadMenuW(IDR_MENU1);
+			CMenu* pSubMenu1 = cMenu.GetSubMenu(2);
+			//_lpServiceInfo = &gView.m_serviceInfos[pNMItem->iItem];
+			pSubMenu1->AppendMenu(MF_GRAYED, MF_POPUP, gView.m_str);
+			gView.m_Statu.bForm = 2;
+			pSubMenu1->TrackPopupMenu(TPM_LEFTALIGN, xy.x, xy.y, gView.m_Main);
+		}
+	}	//IF END：PE处理
 }
 
 
@@ -207,9 +225,27 @@ void CController::DoSomeMenu(UINT nID)
 			MessageBox(m_wMain, bRet ? _T("成功") : _T("失败"), _T("提示"), 0);
 		}
 	}break;
-	case ID_32784: {		//清理缓存垃圾
-
-
+	case ID_32784: {		//进入PE功能区
+		if (gView.m_Statu.bForm == 2) {
+			CTreeCtrl* pTree = gView.m_PVTree;
+			CString str;
+			gView.m_PVEdit->GetWindowTextW(str);
+			str += gView.m_str;
+			if (gView.m_CPE.Init(str.GetBuffer()))		//初始化PE类
+			{
+				gView.m_PVEdit->SetWindowTextW(str);
+				HTREEITEM tPE = gView.m_tRoot->fPE.htTree;
+				pTree->Expand(gView.m_tRoot->fFile.htTree, TVE_COLLAPSE);
+				pTree->Expand(tPE, TVE_EXPAND);
+				tPE = pTree->GetNextItem(tPE, TVGN_CHILD);
+				pTree->SelectItem(tPE);
+				MyTreeInfo& tInfo =
+					gView.m_tLeafs[tPE];
+				gView.InitList(tInfo);
+				gView.DoSomeThingTree(tPE);
+			}
+		}
+		gView.m_Statu.bForm = 0;
 	}break;
 	case ID_32785: {		//清理VS垃圾
 		if (!PathFileExists(gView.m_str))	return;		//如果文件不存在则返回

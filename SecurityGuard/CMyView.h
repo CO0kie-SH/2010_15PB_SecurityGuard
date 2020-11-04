@@ -46,6 +46,7 @@ typedef struct _WindStatu		//结构体[当前视图状态]
 {
 	MyTreeInfo	tKind;			//定义当前树控件的选项
 	PCHAR		pFilePath = nullptr;	//定义文件路径
+	BOOL		bForm = false;
 }WindStatu, * PWindStatu;
 
 class CMyView
