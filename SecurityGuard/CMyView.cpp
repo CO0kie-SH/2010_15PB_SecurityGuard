@@ -182,6 +182,7 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 
 		if (tInfo.str == gszPEFunctions[gdsz_PE文件头]) {
 			m_CPE.Init(DLLP32);
+			
 			if (m_CPE.GetNTHeadInfo()) {
 				this->InitList(m_CPE.NTHead_Info);
 			}
@@ -320,9 +321,9 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 		unsigned char idx = 0;
 		if (tInfo.str == gszRBFunctions[gdsz_系统垃圾清理]) {
 			SHEmptyRecycleBinA(this->m_Main->GetSafeHwnd(), "C:\\",
-				SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND);
-			SHEmptyRecycleBinA(this->m_Main->GetSafeHwnd(), "D:\\",
-				SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND);
+				/*SHERB_NOCONFIRMATION |*/ SHERB_NOPROGRESSUI | SHERB_NOSOUND);
+			//SHEmptyRecycleBinA(this->m_Main->GetSafeHwnd(), "D:\\",
+			//	SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND);
 		}
 		else if (tInfo.str == gszRBFunctions[gdsz_IE垃圾清理]) {
 			ShellExecute(NULL, _T("open"), _T("rundll32.exe"),

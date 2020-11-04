@@ -247,9 +247,9 @@ BOOL CALLBACK EnumFilePaths(void(*CALLBACKPROC)(LPFILEINFO),
 			fl.Size = fl.data.nFileSizeLow;		//获取文件大小
 			fl.Size |= (((__int64)fl.data.nFileSizeHigh) << 32);
 		}
-		wsprintf(buff, _T("%s\t%-22s\t父文件夹\t%s\n"), fl.isDir ?
-			_T("文件夹") : _T("文件"), fl.data.cFileName, fl.path);
-		OutputDebugString(buff);
+		//wsprintf(buff, _T("%s\t%-22s\t父文件夹\t%s\n"), fl.isDir ?
+		//	_T("文件夹") : _T("文件"), fl.data.cFileName, fl.path);
+		//OutputDebugString(buff);
 		//向回调函数回调
 		CALLBACKPROC(&fl);
 		if (fl.isDir) {

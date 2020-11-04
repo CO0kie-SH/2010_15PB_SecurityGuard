@@ -28,6 +28,12 @@ extern "C" _declspec(dllexport)
 BOOL EnableDebugPrivilege();
 
 
+typedef void(*FILECALLBACK)(LPFILEINFO);
+typedef struct  _CallEnumFilePaths {
+    TCHAR Path[MAX_PATH];
+    FILECALLBACK CallAddress;
+}CallEnumFilePaths, * LPCallEnumFilePaths;
+
 extern _declspec(dllexport)
 BOOL CALLBACK EnumFilePaths(void(*CALLBACKPROC)(LPFILEINFO),
 	PTCHAR Path, CHeap* heap, PTCHAR Kind = nullptr);
