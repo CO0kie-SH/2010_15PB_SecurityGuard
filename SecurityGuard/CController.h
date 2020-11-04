@@ -24,6 +24,7 @@ public:
 	DWORD CALLBACK WorkerThread3(LPVOID lpThreadParameter);
 	static void FileCallBack(LPFILEINFO pFileInfo);
 	void DoSomeTreeRight(HTREEITEM& hTree, CPoint& point);
+	void DoSomeEdit();
 
 private:
 	LPSERVICEINFO	_lpServiceInfo = nullptr;

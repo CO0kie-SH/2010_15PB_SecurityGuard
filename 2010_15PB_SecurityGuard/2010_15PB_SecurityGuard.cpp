@@ -6,6 +6,10 @@
 #include "..\Dll_API\CApi.h"
 #pragma comment(lib,"..\\x64\\Debug\\Dll_API.lib")
 
+#include "..\DLL_HOOK64\CHook.h"
+#pragma comment(lib,"..\\x64\\Debug\\DLL_HOOK64.lib")
+
+
 
 ULONG_PTR _OldmsgBoxW;
 LPVOID _MymsgBoxW;
@@ -20,7 +24,7 @@ MessageBoxWMy(
 	 LPCWSTR lpText,
 	 LPCWSTR lpCaption,
 	 UINT uType) {
-	return	MessageBoxW(0, L"被截获", 0, 0);
+	return	MessageBoxA(0, "被截获", 0, 0);
 }
 
 static BOOL DoHook() {
@@ -120,7 +124,7 @@ MyIATHook::~MyIATHook()
 {
 }
 
-
+CHook* mgHook = nullptr;
 
 int main() {
 	setlocale(LC_ALL, "chs");
@@ -129,32 +133,41 @@ int main() {
 	CMyProcess cPro;
 	PROCESSINFO   pInfo;
 	if (cPro.EnumProcess(&proInfos)) {
-		
 		for (const auto& item : proInfos)
 		{
-			printf_s("%llu\t%lu\t%lu\t", ++i,
-				item.pPID, item.tPID);
+			//printf_s("%llu\t%lu\t%lu\t", ++i,
+			//	item.pPID, item.tPID);
 			wprintf_s(L"%s\n", item.name);
 			if (0 == wcscmp(item.name, L"peTest.exe")) {
 				pInfo = item;
 				break;
-				
 			}
 		}
 
 	}
-	MyIATHook iat;
-	DoHook();
+	//MyIATHook iat;
+	//DoHook();
+	CHook* pHook = (CHook*)PrintInfo();
+	pHook->Print();
 
 	int key;
+	HANDLE hPro;
 	while (key = getchar())
 	{
 		printf_s("key=%d\n", key);
 		if (key == 'e')    break;
-		if (key == 'm')
+		else if (key == 'm')
 			MessageBoxA(0, "原始A", 0, 0);
-		if (key == 'M')
+		else if (key == 'M')
 			MessageBoxW(0, L"原始W", 0, 0);
+		else if (key == 'o')
+			pHook->DoHook();
+		else if (key == 'u')
+			pHook->UnHook();
+		else if (key == 'p')
+			hPro=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, GetCurrentProcessId());
+		else if (key == 'P')
+			hPro=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, 2600);
 	}
 	return 0;
 }

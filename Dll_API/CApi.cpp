@@ -281,11 +281,12 @@ BOOL API_LoadDll(HANDLE hProcess,PTCHAR DllPath)
 		&dwRealSize
 	) == 0 || dwRealSize != len)
 		return false;
-
 	HANDLE hThread = CreateRemoteThread(hProcess, 0, 0,
 		(LPTHREAD_START_ROUTINE)LoadLibraryW,
 		(LPVOID)pAddress,
 		0, 0);
+
+	Sleep(333);
 	VirtualFreeEx(hProcess, pAddress, 0, MEM_RELEASE);
 	if (NULL == hThread)	return false;
 	CloseHandle(hThread);

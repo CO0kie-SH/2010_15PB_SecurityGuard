@@ -345,6 +345,26 @@ void CController::DoSomeMenu(UINT nID)
 		}
 
 	}break;
+	case ID_32791: {		//重启
+		if (MessageBoxW(m_wMain, L"确定要重启吗？？", L"警告！！",
+			MB_YESNO | MB_ICONWARNING) == IDYES) {
+			system("start shutdown -r -t 61");
+			system("cmd /k echo if will cancel,do \'shutdown -a\'");
+		}
+	}break;
+	case ID_32792: {		//关机
+		if (MessageBoxW(m_wMain, L"确定要关机吗？？", L"警告！！",
+			MB_YESNO | MB_ICONWARNING) == IDYES) {
+			system("start shutdown -s -t 61");
+			system("cmd /k echo if will cancel,do \'shutdown -a\'");
+		}
+	}break;
+	case ID_32793: {		//注销
+		if (MessageBoxW(m_wMain,L"确定要注销吗？？", L"警告！！",
+			MB_YESNO | MB_ICONWARNING) == IDYES) {
+			system("start shutdown /l");
+		}
+	}break;
 	default:
 		break;
 	}
@@ -448,6 +468,22 @@ void CController::DoSomeTreeRight(HTREEITEM& hTree, CPoint& point)
 		pSubMenu1->AppendMenu(MF_GRAYED, MF_POPUP,
 			gView.m_str);
 		pSubMenu1->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, gView.m_Main);
+	}
+}
+
+void CController::DoSomeEdit()
+{
+	if (gView.m_Statu.tKind.str == gszPEFunctions[9]) {
+		CString str;
+		gView.m_PVEdit->GetWindowTextW(str);
+		DWORD RVA = _tcstol(str, NULL, 16);
+		DWORD FOA = gView.m_CPE.RvaToFoa(RVA);
+		str.Format(L"%lX", RVA+gView.m_CPE.NTHead_Info.dwPEHead[1]);
+		gView.m_PVList->SetItemText(0, 2, str);
+		str.Format(L"%lX", RVA);
+		gView.m_PVList->SetItemText(1, 2, str);
+		str.Format(L"%lX", FOA);
+		gView.m_PVList->SetItemText(2, 2, str);
 	}
 }
 #pragma endregion

@@ -71,6 +71,7 @@ BEGIN_MESSAGE_MAP(CSecurityGuardDlg, CDialogEx)
 	ON_COMMAND_RANGE(ID_32772, ID_32793, &CSecurityGuardDlg::OnClickMenu)
 	ON_WM_HOTKEY()
 	ON_NOTIFY(NM_RCLICK, IDC_TREE1, &CSecurityGuardDlg::OnNMRClickTree1)
+	ON_EN_UPDATE(IDC_EDIT1, &CSecurityGuardDlg::OnEnUpdateEdit1)
 END_MESSAGE_MAP()
 
 
@@ -245,4 +246,17 @@ void CSecurityGuardDlg::OnNMRClickTree1(NMHDR* pNMHDR, LRESULT* pResult)
 		}
 	}
 	*pResult = 0;
+}
+
+
+void CSecurityGuardDlg::OnEnUpdateEdit1()
+{
+	
+	// TODO:  如果该控件是 RICHEDIT 控件，它将不
+	// 发送此通知，除非重写 CDialogEx::OnInitDialog()
+	// 函数，以将 EM_SETEVENTMASK 消息发送到该控件，
+	// 同时将 ENM_UPDATE 标志“或”运算到 lParam 掩码中。
+
+	// TODO:  在此添加控件通知处理程序代码
+	gCtrl.DoSomeEdit();
 }

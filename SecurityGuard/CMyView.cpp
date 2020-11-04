@@ -262,11 +262,11 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 			vector<PEImport_INFO> importInfos;
 			if (this->m_CPE.GetImportInfo(importInfos)) {
 				i = importInfos.size();
-				TCHAR buff[33];
+				TCHAR buff[MAX_PATH];
 				while (i--)
 				{
 					this->m_PVList->InsertItem(0, _T(""));
-					mbstowcs_s(nullptr, buff, importInfos[i].pApiName, 33);
+					mbstowcs_s(nullptr, buff, importInfos[i].pApiName, MAX_PATH);
 					this->m_PVList->SetItemText(0, 1, buff);
 					m_str.Format(_T("%08lX"), importInfos[i].dwRVA);
 					this->m_PVList->SetItemText(0, 2, m_str);
@@ -285,6 +285,15 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 				}	//While END；
 			}
 		}	//IF END：PE导入表处理
+		else if (tInfo.str == gszPEFunctions[9]) {
+			this->InitList(tInfo, true);
+			this->m_PVList->InsertItem(0, L"3");
+			this->m_PVList->SetItemText(0, 1, L"偏移量");
+			this->m_PVList->InsertItem(0, L"2");
+			this->m_PVList->SetItemText(0, 1, L"RVA");
+			this->m_PVList->InsertItem(0, L"1");
+			this->m_PVList->SetItemText(0, 1, L"VA");
+		}	//IF END：PE转换表处理
 	}	//IF END：PE信息处理
 	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree	//如果树根为进程
 		&& tInfo.uiDeep == 1) {								//且深度==1
@@ -418,7 +427,11 @@ void CMyView::InitList(const MyTreeInfo& tInfo, bool isRef)
 			this->m_PVList->InsertColumn(0, _T("RVA"), LVCFMT_LEFT, 123);
 			this->m_PVList->InsertColumn(0, _T("Api名"), LVCFMT_LEFT, 123);
 		}
-	}	//IF END：PE信息集
+		else if (tInfo.str == gszPEFunctions[9]) {	//PE导出表信息
+			this->m_PVList->InsertColumn(0, _T("配置值"), LVCFMT_LEFT, 123);
+			this->m_PVList->InsertColumn(0, _T("配置项"), LVCFMT_LEFT, 123);
+		}
+	}	//IF END：PE地址转换集
 	else if (tInfo.hrTree == this->m_tRoot->fProcsss.htTree		//如果树根为进程
 		&& tInfo.uiDeep == 1) {
 		if (tInfo.str == gszPCFunctions[0]) {
