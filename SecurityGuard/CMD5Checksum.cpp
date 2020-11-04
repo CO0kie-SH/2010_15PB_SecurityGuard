@@ -63,16 +63,7 @@ BOOL CMD5Checksum::GetMd5(char* pChar, char pMd5[33],
 	//checksum the file in blocks of 1024 bytes
 	//while ((nLength = File.Read( Buffer, nBufferSize )) > 0 )
 	//{ 
-	if (ulLen < 1024)
-		pCMD5->Update(Buffer, (ULONG)ulLen);
-	else
-	{
-		for (__int64 i = 0; i < ulLen; i += 1024)
-		{
-			pCMD5->Update(Buffer, 1024);
-			Buffer += 1024;
-		}
-	}
+	pCMD5->Update(Buffer, (ULONG)ulLen);
 	//MD5Checksum.Update(Buffer, nLength);
 	//}
 	//finalise the checksum and return it
@@ -92,7 +83,7 @@ BOOL CMD5Checksum::GetMd5(CFile& cFile, char pMd5[33], CMD5Checksum* pCMD5)
 	//	return false;
 
 	int nLength = 0;       //number of bytes read from the file
-	const int nBufferSize = 1024; //checksum the file in blocks of 1024 bytes
+	const int nBufferSize = 4096; //checksum the file in blocks of 1024 bytes
 	BYTE Buffer[nBufferSize];   //buffer for data read from the file
 
 	//checksum the file in blocks of 1024 bytes

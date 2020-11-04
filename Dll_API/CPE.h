@@ -1,7 +1,7 @@
 #pragma once
 #include "CInclude.h"
 
-#define		gdefPEFunctions_MAX		0x0B
+#define		gdefPEFunctions_MAX		0x0A
 #define		gdefNTHeadInfos_MAX		0x10
 #define		gdefZONEInfos_MAX		0x07
 #define		gdefTableInfos_MAX		0x10

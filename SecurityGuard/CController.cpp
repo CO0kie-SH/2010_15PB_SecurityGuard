@@ -50,17 +50,17 @@ DWORD CALLBACK WorkerThread2(LPVOID lpThreadParameter)
 
 DWORD WorkerThread4(LPVOID lpThreadParameter)
 {
-	CListCtrl* CList = (CListCtrl*)gView.GetPVList(); 
 	ULONG_PTR tIndex = (ULONG_PTR)lpThreadParameter;
-	int max = CList->GetItemCount(), i, tMax = threadIsRunSearch;
+	CListCtrl* CList = (CListCtrl*)gView.GetPVList(); 
+	int max = CList->GetItemCount(), i, tMax;
 	CString str;	CFile cFile;
 	char pMd5[33];
-	TCHAR buff[MAX_PATH];
+	TCHAR tBuff[MAX_PATH];
 	for (i = 0; i < max; i++)
 	{
 		tMax = threadIsRunSearch;
-		if (tMax == 0)	break;
-		if (i % tMax == tIndex)
+		if (tMax == 0)	return 0x01;
+		if (i % 2 == (int)tIndex)
 		{
 			continue;
 		}
@@ -68,15 +68,19 @@ DWORD WorkerThread4(LPVOID lpThreadParameter)
 		str += CList->GetItemText(i, 2);
 		if (cFile.Open(str, CFile::modeRead) == 0)
 			continue;
-
+		
 		if (cFile.GetLength() > 0 &&
 			CMD5Checksum::GetMd5(cFile, pMd5/*, &cMd5*/) &&
-			mbstowcs_s(nullptr, buff, pMd5, 33) == 0) {
-			CList->SetItemText(i, 4, buff);
+			mbstowcs_s(nullptr, tBuff, pMd5, 33) == 0) {
+			str = tBuff;
+			if (str.Find(L"B3C4221B573D4D403F23D310BB2E42C3") != -1) {
+				CList->SetItemText(i, 5, _T("ÕâÊÇ²¡¶¾£¡£¡£¡"));
+			}
+			CList->SetItemText(i, 4, tBuff);
 		}
 		cFile.Close();
 	}
-	gCtrl.DoSomeMenu(ID_32776);
+	//gCtrl.DoSomeMenu(ID_32776);
 	if (threadIsRunSearch)
 		--threadIsRunSearch;
 	return 0x00;
