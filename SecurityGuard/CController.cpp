@@ -23,7 +23,7 @@ DWORD CALLBACK WorkerThread(LPVOID lpThreadParameter)
 			swprintf_s(buff, MAX_PATH, L"CPU：%.1f%%，内存：%lu%%",
 				fcpu, statex.dwMemoryLoad);
 
-			menu->ModifyMenu(5, MF_BYPOSITION, ID_32777, buff);
+			menu->ModifyMenu(6, MF_BYPOSITION, ID_32777, buff);
 			DrawMenuBar(wMain);
 			//OutputDebugString(buff);
 		}
@@ -320,6 +320,30 @@ void CController::DoSomeMenu(UINT nID)
 			NULL,			// 创建标志
 			&tid);			// 传出的线程ID
 		Sleep(10);
+	}break;
+	case ID_32790: {		//保护自身
+		CString str;
+		vector<PROCESSINFO> proInfos;
+		if (gView.m_CProcess.EnumProcess(&proInfos)) {
+			for (const auto& val : proInfos)
+			{
+				if (/*val.is32 == 64 &&*/
+					0==_tcscmp(_T("peTest.exe"), val.name))
+				{
+					HMODULE module = GetModuleHandle(0);
+					TCHAR buf[MAX_PATH];
+					GetModuleFileName(module, buf, MAX_PATH);
+					PathRemoveFileSpec(buf);
+					//str.Format(_T("%s\\DLL_HOOK64.dll"));
+					wcscat_s(buf, MAX_PATH, _T("\\DLL_HOOK64.dll"));
+					HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, val.tPID);
+					API_LoadDll(hProcess, buf);
+					CloseHandle(hProcess);
+					break;
+				}
+			}
+		}
+
 	}break;
 	default:
 		break;

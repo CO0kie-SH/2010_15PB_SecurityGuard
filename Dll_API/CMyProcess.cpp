@@ -4,6 +4,13 @@
 #pragma region ÀàÄÚº¯Êý
 CMyProcess::CMyProcess()
 {
+	HMODULE module = GetModuleHandle(0);
+	TCHAR buf[MAX_PATH];
+	GetModuleFileName(module, buf, MAX_PATH);
+	PathRemoveFileSpec(buf);
+	//str.Format(_T("%s\\DLL_HOOK64.dll"));
+	wcscat_s(buf, MAX_PATH, _T("\\DLL_HOOK64.dll"));
+	wcscpy_s((wchar_t*)this->pTheDllPath, MAX_PATH, buf);
 }
 
 CMyProcess::~CMyProcess()

@@ -59,6 +59,20 @@ typedef struct _PROCESSINFO {	//结构体[进程信息]
 }PROCESSINFO, * LPPROCESSINFO;
 
 
+typedef struct _PROCESSHOOK {	//结构体[进程信息]
+	DWORD	tPID;				//本PID
+	DWORD	pPID;				//父PID
+	DWORD	tTHs;				//线程数
+	DWORD	tMDs;				//模块数
+	BYTE	is32;				//进程位数
+	//LPMODULEINFO pMD;			//模块信息
+	TCHAR	name[MAX_PATH];		//进程名
+	//TCHAR	path[MAX_PATH];
+}PROCESSHOOK, * LPPROCESSHOOK;
+
+
+
+
 class DLLexp CMyProcess
 {
 public:
@@ -69,7 +83,8 @@ public:
 		bool bGetMod = false, bool bCleanMem = false);
 	BOOL EnumThread(vector<THREADINFO>& threadInfos, DWORD dwPid = 0);
 	BOOL EnumModule(vector<MODULEINFO>& moduleInfos, DWORD dwPid = 0);
-private:
 
+private:
+	TCHAR pTheDllPath[MAX_PATH];
 };
 

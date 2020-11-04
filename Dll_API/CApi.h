@@ -39,6 +39,14 @@ BOOL CALLBACK EnumFilePaths(void(*CALLBACKPROC)(LPFILEINFO),
 	PTCHAR Path, CHeap* heap, PTCHAR Kind = nullptr);
 
 
+extern _declspec(dllexport)
+BOOL CALLBACK API_LoadDll(HANDLE hProcess, PTCHAR DllPath);
+
+//extern _declspec(dllexport)
+//BOOL CALLBACK API_FreeDll(HANDLE hProcess);
+
+
+
 class CApi
 {
 };

@@ -261,6 +261,36 @@ BOOL CALLBACK EnumFilePaths(void(*CALLBACKPROC)(LPFILEINFO),
 	heap->HeapFree(buff);
 	return TRUE;
 }
+
+
+/*
+	函数：远程注入DLL
+*/
+BOOL API_LoadDll(HANDLE hProcess,PTCHAR DllPath)
+{
+	if (hProcess == nullptr)return false;
+	LPVOID  pAddress = 
+		VirtualAllocEx(hProcess, 0, 4096,		//则使用旧申请
+			MEM_COMMIT, PAGE_READWRITE);		//否则用新申请
+	if (NULL == pAddress)	return false;
+	SIZE_T dwRealSize = 0, len = wcslen(DllPath) +1;
+	len *= 2;
+	if (WriteProcessMemory(
+		hProcess, pAddress,
+		DllPath, len,
+		&dwRealSize
+	) == 0 || dwRealSize != len)
+		return false;
+
+	HANDLE hThread = CreateRemoteThread(hProcess, 0, 0,
+		(LPTHREAD_START_ROUTINE)LoadLibraryW,
+		(LPVOID)pAddress,
+		0, 0);
+	VirtualFreeEx(hProcess, pAddress, 0, MEM_RELEASE);
+	if (NULL == hThread)	return false;
+	CloseHandle(hThread);
+	return true;
+}
 #pragma endregion
 
 
