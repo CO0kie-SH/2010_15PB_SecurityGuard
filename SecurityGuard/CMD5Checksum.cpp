@@ -95,6 +95,11 @@ BOOL CMD5Checksum::GetMd5(CFile& cFile, char pMd5[33], CMD5Checksum* pCMD5)
 	//return bRet;
 }
 
+BOOL CMD5Checksum::CheckFileMd5(char pMd5[33])
+{
+	return 0;
+}
+
 /*****************************************************************************************
 FUNCTION:  CMD5Checksum::RotateLeft
 DETAILS:  private

@@ -25,6 +25,7 @@ public:
 	static void FileCallBack(LPFILEINFO pFileInfo);
 	void DoSomeTreeRight(HTREEITEM& hTree, CPoint& point);
 	void DoSomeEdit();
+	BOOL CheckFileMd5(char pMd5[33]);
 
 private:
 	LPSERVICEINFO	_lpServiceInfo = nullptr;

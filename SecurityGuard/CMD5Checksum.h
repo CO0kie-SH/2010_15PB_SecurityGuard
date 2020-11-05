@@ -18,6 +18,7 @@ public:
 	static CString GetMD5(const CString& strFilePath);
 	static BOOL	GetMd5(char* pChar, char pMd5[33], __int64 ulLen = 0, CMD5Checksum* pCMD5 = nullptr);
 	static BOOL	GetMd5(CFile& cFile, char pMd5[33], CMD5Checksum* pCMD5 = nullptr);
+	static BOOL	CheckFileMd5(char pMd5[33]);
 protected:
 	//constructor/destructor
 	CMD5Checksum();

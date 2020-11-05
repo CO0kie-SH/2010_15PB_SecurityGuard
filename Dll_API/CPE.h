@@ -12,7 +12,12 @@ enum _EnumPE功能区
 	gdsz_PE区段信息,
 	gdsz_PE目录信息,
 	gdsz_PE导入表信息,
-	gdsz_PE导出表信息
+	gdsz_PE导出表信息,
+	gdsz_PE资源信息,
+	gdsz_PE重定位信息,
+	gdsz_PE延迟信息,
+	gdsz_PETLS信息,
+	gdsz_PE地址转换
 };
 
 
@@ -60,7 +65,6 @@ constexpr	PTCHAR	gszZONEInfos[] = {
 	(PTCHAR)_T("标志")
 };
 
-
 constexpr	PTCHAR	gszTablesInfos[] = {
 	(PTCHAR)_T("输出表"),
 	(PTCHAR)_T("输入表"),
@@ -79,6 +83,16 @@ constexpr	PTCHAR	gszTablesInfos[] = {
 	(PTCHAR)_T("COM"),
 	(PTCHAR)_T("保留")
 };
+
+constexpr	PTCHAR	gszTLSInfos[] = {
+	(PTCHAR)_T("数据块开始VA"),
+	(PTCHAR)_T("数据块结束VA"),
+	(PTCHAR)_T("索引变量VA"),
+	(PTCHAR)_T("回调表VA"),
+	(PTCHAR)_T("填零大小"),
+	(PTCHAR)_T("特征值")
+};
+
 
 enum IDXPEINFO
 {
@@ -176,8 +190,10 @@ public:
 	BOOL	GetTableInfo();
 	BOOL	GetExportInfo(vector<PEExport_INFO>& exportInfos);
 	BOOL	GetImportInfo(vector<PEImport_INFO>& importInfos);
+	BOOL	GetTLSInfo(DWORD Info[6]);
 	//PTCHAR	GetNTHeadTCHAR(BYTE i);
 	void* GetDataDirectory(WORD i);
+
 public:
 	ULONGLONG		FOA;
 	BYTE			is32o64;

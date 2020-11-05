@@ -487,6 +487,39 @@ typedef struct _IMAGE_IMPORT_BY_NAME {
 	return !importInfos.empty();
 }
 
+BOOL CPE::GetTLSInfo(DWORD Info[6])
+{
+
+	if (FOA == 0)	return false;
+	PIMAGE_DATA_DIRECTORY dwImportDir =
+		(PIMAGE_DATA_DIRECTORY)GetDataDirectory(9);
+	if (dwImportDir == nullptr)	return false;
+
+	PIMAGE_TLS_DIRECTORY32 pTls = (PIMAGE_TLS_DIRECTORY32)(
+		RvaToFoa(dwImportDir->VirtualAddress)
+		+ FOA);
+	
+	//遍历TLS表信息
+	TCHAR buff[MAX_PATH];
+	wsprintfW(buff, L"%lX\n", pTls->StartAddressOfRawData);
+	Info[0] = pTls->StartAddressOfRawData;
+	OutputDebugStringW(buff);
+	wsprintfW(buff, L"%lX\n", pTls->EndAddressOfRawData);
+	Info[1] = pTls->EndAddressOfRawData;
+	OutputDebugStringW(buff);
+	wsprintfW(buff, L"%lX\n", pTls->AddressOfIndex);
+	Info[2] = pTls->AddressOfIndex;
+	OutputDebugStringW(buff);
+	wsprintfW(buff, L"%lX\n", pTls->AddressOfCallBacks);
+	Info[3] = pTls->AddressOfCallBacks;
+	OutputDebugStringW(buff);
+	wsprintfW(buff, L"%lX\n", pTls->Characteristics);
+	Info[4] = pTls->SizeOfZeroFill;
+	Info[5] = pTls->Characteristics;
+	OutputDebugStringW(buff);
+	return 0;
+}
+
 /*
 	函数：获取PE目录表
 	时间：11-03_16-05

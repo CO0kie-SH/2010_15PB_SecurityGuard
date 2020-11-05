@@ -50,31 +50,28 @@ DWORD CALLBACK WorkerThread2(LPVOID lpThreadParameter)
 
 DWORD WorkerThread4(LPVOID lpThreadParameter)
 {
-	ULONG_PTR tIndex = (ULONG_PTR)lpThreadParameter;
-	CListCtrl* CList = (CListCtrl*)gView.GetPVList(); 
-	int max = CList->GetItemCount(), i, tMax;
-	CString str;	CFile cFile;
-	char pMd5[33];
-	TCHAR tBuff[MAX_PATH];
+	ULONG_PTR tIndex = (ULONG_PTR)lpThreadParameter;				//传入参数
+	CListCtrl* CList = (CListCtrl*)gView.GetPVList();				//通过视图得到列表框
+	int max = CList->GetItemCount(), i, tMax = threadIsRunSearch;	//初始化循环参数
+	CString str;	CFile cFile;						//定义字符串与文件
+	TCHAR tBuff[MAX_PATH];	char pMd5[33];				//定义缓冲区
 	for (i = 0; i < max; i++)
 	{
-		tMax = threadIsRunSearch;
-		if (tMax == 0)	return 0x01;
-		if (i % 2 == (int)tIndex)
-		{
-			continue;
+		if (threadIsRunSearch == 0)	return 0x01;	//如果控制线程标识符为0则退出线程
+		if (i % 2 != (int)tIndex)					//取线程数为值计算余数
+		{											//如果余数不为传入的参数id
+			continue;								//则到循环尾
 		}
-		str = CList->GetItemText(i, 3);
-		str += CList->GetItemText(i, 2);
-		if (cFile.Open(str, CFile::modeRead) == 0)
+		str = CList->GetItemText(i, 3);				//获取文件父路径
+		str += CList->GetItemText(i, 2);			//获取文件名
+		if (cFile.Open(str, CFile::modeRead) == 0)		//如果打开失败则到循环尾
 			continue;
 		
-		if (cFile.GetLength() > 0 &&
-			CMD5Checksum::GetMd5(cFile, pMd5/*, &cMd5*/) &&
-			mbstowcs_s(nullptr, tBuff, pMd5, 33) == 0) {
-			str = tBuff;
-			if (str.Find(L"B3C4221B573D4D403F23D310BB2E42C3") != -1) {
-				CList->SetItemText(i, 5, _T("这是病毒！！！"));
+		if (cFile.GetLength() > 0 &&						//如果文件长度>0
+			CMD5Checksum::GetMd5(cFile, pMd5)	&&			//Md5类计算文件Md5
+			mbstowcs_s(nullptr, tBuff, pMd5, 33) == 0) {		//char*转CStringW
+			if (gCtrl.CheckFileMd5(pMd5)) {						//通过控制器黑名单
+				CList->SetItemText(i, 5, _T("这是病毒！！！"));	//获取文件是否为病毒
 			}
 			CList->SetItemText(i, 4, tBuff);
 		}
@@ -485,6 +482,18 @@ void CController::DoSomeEdit()
 		str.Format(L"%lX", FOA);
 		gView.m_PVList->SetItemText(2, 2, str);
 	}
+}
+BOOL CController::CheckFileMd5(char pMd5[33])
+{
+	TCHAR tBuff[MAX_PATH];	CString str;
+	if (mbstowcs_s(nullptr, tBuff, pMd5, 33) == 0) {
+		str = tBuff;
+		if (str.Find(L"B3C4221B573D4D403F23D310BB2E42C3") != -1)
+		{
+			return true;
+		}
+	}
+	return 0;
 }
 #pragma endregion
 
