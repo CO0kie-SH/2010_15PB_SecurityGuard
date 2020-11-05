@@ -72,6 +72,11 @@ DWORD WorkerThread4(LPVOID lpThreadParameter)
 			mbstowcs_s(nullptr, tBuff, pMd5, 33) == 0) {		//char*转CStringW
 			if (gCtrl.CheckFileMd5(pMd5)) {						//通过控制器黑名单
 				CList->SetItemText(i, 5, _T("这是病毒！！！"));	//获取文件是否为病毒
+				if (IDYES == MessageBox(gView.GetMainHwnd(), str,
+					_T("是否要病毒删除文件。"), MB_YESNO)) {
+					cFile.Close();
+					cFile.Remove(str);
+				}
 			}
 			CList->SetItemText(i, 4, tBuff);
 		}
@@ -230,11 +235,6 @@ void CController::DoSomeMenu(UINT nID)
 		}
 		threadIsRun = false;
 		SendMessageW(this->m_wMain, 16, 0, 0);
-		//CString strRet, strPath;
-		//strPath = L"D:\\15pb\\del.bat";
-		//strRet = CMD5Checksum::GetMD5(strPath);
-		//OutputDebugString(strPath);
-		//OutputDebugString(strRet);
 	}break;
 	case ID_32777: {		//CPU
 		if (IDYES == MessageBox(m_wMain, _T("确认要退清理内存吗？"),
@@ -269,7 +269,7 @@ void CController::DoSomeMenu(UINT nID)
 		if (!PathFileExists(gView.m_str))	return;		//如果文件不存在则返回
 		if (!PathIsDirectory(gView.m_str))	return;		//如果目录不存在则返回
 
-		CString strCMD = _T("/k title \"请确认以下路径，然后按任意键删除。\" &&");
+		CString strCMD = _T("/c title \"请确认以下路径，然后按任意键删除。\" &&");
 		strCMD += _T("echo \"请确认以下路径，然后按任意键删除。\"&&echo %cd%\\&& pause &&");
 		strCMD += _T("del /s  *.ilk *.pdb *.obj *.log *.pch *.tlog");
 		strCMD += _T(" *.lastbuildstate *.sdf *.idb *.ipch *.res");

@@ -578,19 +578,19 @@ BOOL CPE::GetTLSInfo(ULONGLONG Info[6])
 		OutputDebugStringW(buff);
 	}
 	else if (this->is32o64 == 64) {
-		wsprintfW(buff, L"%llX\n", pTls->StartAddressOfRawData);
+		wsprintfW(buff, L"%llX\n", pTls64->StartAddressOfRawData);
 		Info[0] = pTls64->StartAddressOfRawData;
 		OutputDebugStringW(buff);
-		wsprintfW(buff, L"%llX\n", pTls->EndAddressOfRawData);
+		wsprintfW(buff, L"%llX\n", pTls64->EndAddressOfRawData);
 		Info[1] = pTls64->EndAddressOfRawData;
 		OutputDebugStringW(buff);
-		wsprintfW(buff, L"%llX\n", pTls->AddressOfIndex);
+		wsprintfW(buff, L"%llX\n", pTls64->AddressOfIndex);
 		Info[2] = pTls64->AddressOfIndex;
 		OutputDebugStringW(buff);
-		wsprintfW(buff, L"%llX\n", pTls->AddressOfCallBacks);
+		wsprintfW(buff, L"%llX\n", pTls64->AddressOfCallBacks);
 		Info[3] = pTls64->AddressOfCallBacks;
 		OutputDebugStringW(buff);
-		wsprintfW(buff, L"%llX\n", pTls->Characteristics);
+		wsprintfW(buff, L"%llX\n", pTls64->Characteristics);
 		Info[4] = pTls64->SizeOfZeroFill;
 		Info[5] = pTls64->Characteristics;
 		OutputDebugStringW(buff);

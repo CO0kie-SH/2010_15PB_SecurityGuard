@@ -2,6 +2,12 @@
 
 
 
+## 图片演示
+
+<img src="http://ww1.sinaimg.cn/large/93c22010ly1gkeb1flpx8g20lz0h50ws.gif" alt="Ox01主界面.gif" style="zoom:80%;" />
+
+<img src="http://ww1.sinaimg.cn/large/93c22010ly1gkeb2cytwbg20lz0gq13t.gif" alt="Ox02清理内存.gif" style="zoom:80%;" />
+
 
 
 

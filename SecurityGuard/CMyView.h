@@ -89,6 +89,9 @@ public:
 	void* GetPVList() {
 		return m_PVList;
 	};
+	HWND GetMainHwnd() {
+		return this->m_Main->GetSafeHwnd();
+	};
 protected:
 	WindStatu	m_Statu;				//视图状态
 	CMyFile		m_CFile;				//文件类

@@ -382,7 +382,9 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 	else if (tInfo.hrTree == this->m_tRoot->fVirus.htTree		//如果树根为服务区
 		&& tInfo.uiDeep == 1) {									//且深度==1
 		if (tInfo.str == L"干掉病毒进程") {			//是否为干掉软件
-			system("taskkill /f /im Hash.exe /t");
+			ShellExecute(GetMainHwnd(),
+				_T("open"), _T("C:\\Windows\\System32\\cmd.exe"),
+				_T("/c taskkill /f /im Hash.exe"), NULL, SW_HIDE);
 		}
 	}	//IF END：病毒信息处理
 	else if (tInfo.hrTree == this->m_tRoot->fProG.htTree		//如果树根为服务区
