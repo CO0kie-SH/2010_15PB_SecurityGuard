@@ -1,7 +1,7 @@
 #pragma once
 #include "CInclude.h"
 
-#define		gdefPEFunctions_MAX		0x0A
+#define		gdefPEFunctions_MAX		0x0C
 #define		gdefNTHeadInfos_MAX		0x10
 #define		gdefZONEInfos_MAX		0x07
 #define		gdefTableInfos_MAX		0x10
@@ -17,7 +17,9 @@ enum _EnumPE功能区
 	gdsz_PE重定位信息,
 	gdsz_PE延迟信息,
 	gdsz_PETLS信息,
-	gdsz_PE地址转换
+	gdsz_PE地址转换RVA,
+	gdsz_PE地址转换VA,
+	gdsz_PE地址转换FOA
 };
 
 
@@ -32,8 +34,9 @@ constexpr	PTCHAR	gszPEFunctions[] = {
 	(PTCHAR)_T("重定位表"),
 	(PTCHAR)_T("延 迟  表"),
 	(PTCHAR)_T("T L S 表"),
-	(PTCHAR)_T("地址转换"),
-	(PTCHAR)_T("时间转换")
+	(PTCHAR)_T("地址转换RVA"),
+	(PTCHAR)_T("地址转换VA"),
+	(PTCHAR)_T("地址转换FVA")
 };
 
 constexpr	PTCHAR gszNTHeadInfos[]	= {
@@ -164,10 +167,10 @@ typedef struct _PEExportTable
 
 typedef struct _PEImport_INFO
 {
-	DWORD	dwIndex;
-	DWORD	dwRVA;
-	DWORD	dwFOA;
-	DWORD   Thunk;			//IAT表的RVA
+	ULONGLONG	dwIndex;
+	ULONGLONG	dwRVA;
+	ULONGLONG	dwFOA;
+	ULONGLONG   Thunk;			//IAT表的RVA
 	WORD	wdHint;
 	char* pApiName;
 }PEImport_INFO, * LPPEImport_INFO;
@@ -185,12 +188,13 @@ public:
 	BOOL	GetNTHeadInfo();
 	DWORD	RvaToFoa(DWORD dwRva, bool isPrint = false,
 		vector<ZONE_INFO>* zoneInfos = nullptr);
+	DWORD	FoaToRva(DWORD dwFoa);
 
 
 	BOOL	GetTableInfo();
 	BOOL	GetExportInfo(vector<PEExport_INFO>& exportInfos);
 	BOOL	GetImportInfo(vector<PEImport_INFO>& importInfos);
-	BOOL	GetTLSInfo(DWORD Info[6]);
+	BOOL	GetTLSInfo(ULONGLONG Info[6]);
 	//PTCHAR	GetNTHeadTCHAR(BYTE i);
 	void* GetDataDirectory(WORD i);
 

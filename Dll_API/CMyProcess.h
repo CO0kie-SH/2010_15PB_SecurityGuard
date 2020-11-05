@@ -72,6 +72,15 @@ typedef struct _PROCESSHOOK {	//结构体[进程信息]
 
 
 
+typedef struct _ProGInfo {	//结构体[卸载信息]
+	DWORD	index;
+	TCHAR	name[MAX_PATH];		//软件名
+	TCHAR	path[MAX_PATH];		//卸载地址
+	TCHAR	Description[MAX_PATH];		//描述
+}ProGInfo, * LPProGInfo;
+
+
+
 
 class DLLexp CMyProcess
 {
@@ -83,6 +92,7 @@ public:
 		bool bGetMod = false, bool bCleanMem = false);
 	BOOL EnumThread(vector<THREADINFO>& threadInfos, DWORD dwPid = 0);
 	BOOL EnumModule(vector<MODULEINFO>& moduleInfos, DWORD dwPid = 0);
+	BOOL EnumProG(vector<ProGInfo>& proGinfos);
 
 private:
 	TCHAR pTheDllPath[MAX_PATH];

@@ -175,4 +175,61 @@ typedef struct tagMODULEENTRY32W
 	CloseHandle(hToolHelp);
 	return !moduleInfos.empty();
 }
+
+
+BOOL CMyProcess::EnumProG(vector<ProGInfo>& proGinfos)
+{
+	HKEY rootKey = HKEY_LOCAL_MACHINE;//主键
+	LPCTSTR lpSubKey = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall";//子键地址
+	HKEY hkResult = 0;//接收将要打开的键的句柄
+
+	LONG lReturn = RegOpenKeyEx(rootKey, lpSubKey, 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE, &hkResult);
+	if (ERROR_SUCCESS != lReturn)
+		return false;
+	proGinfos.clear();
+
+	//获取子键数量
+	DWORD dwSize = 200;
+	size_t vcIndex = 0;
+	ProGInfo tmp;
+	BYTE bBuff[MAX_PATH];
+
+	//2.循环遍历子键
+	while (dwSize--)
+	{
+		static DWORD dwIndex = 0;
+		DWORD dwKeyLen = 255;
+		WCHAR szNewKeyName[MAX_PATH]{};//注册表项名称
+
+		LONG lReturn = RegEnumKeyEx(hkResult, dwIndex, szNewKeyName, &dwKeyLen, 0, NULL, NULL, NULL);
+
+		//合成新的子键路径
+		WCHAR strMidReg[MAX_PATH]{};
+		swprintf_s(strMidReg, L"%s%s%s", lpSubKey, L"\\", szNewKeyName);
+		ZeroMemory(&tmp, sizeof(ProGInfo));
+		wcscpy_s(tmp.Description, MAX_PATH, szNewKeyName);
+
+		//打开新子键获取其路径
+		HKEY hkValueKey = 0;//子键句柄
+		RegOpenKeyEx(rootKey, strMidReg, 0, KEY_QUERY_VALUE, &hkValueKey);
+
+		//获取键值
+		DWORD dwNameLen = 255;
+		DWORD dwType = 0;
+		RegQueryValueEx(hkValueKey, L"DisplayName", 0, &dwType, bBuff, &dwNameLen);
+		wcscpy_s(tmp.name, MAX_PATH, (wchar_t*)bBuff);
+		dwNameLen = MAX_PATH;//必须重置
+
+		//拆卸路径
+		RegQueryValueEx(hkValueKey, L"UninstallString", 0, &dwType,bBuff, &dwNameLen);
+		wcscpy_s(tmp.path, MAX_PATH, (wchar_t*)bBuff);
+		if (dwNameLen != MAX_PATH) {
+			tmp.index = ++vcIndex;
+			proGinfos.push_back(tmp);
+		}
+		dwNameLen = MAX_PATH;//必须重置
+		dwIndex++;//子键的索引 
+	}
+	return !proGinfos.empty();
+}
 #pragma endregion

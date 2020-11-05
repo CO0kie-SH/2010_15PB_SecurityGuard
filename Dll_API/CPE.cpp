@@ -81,7 +81,7 @@ BOOL CPE::GetNTHeadInfo()
 {
 	if (FOA == 0)	return false;		//如果FOA为0则失败
 	if (this->NTHead_Info.dwPEHead[0])	//非0值表示以及获取过了
-		return true;		
+		return true;
 	//结构体[NT头]说明
 	/*
 typedef struct _IMAGE_NT_HEADERS {
@@ -91,18 +91,18 @@ typedef struct _IMAGE_NT_HEADERS {
 	IMAGE_OPTIONAL_HEADER32 OptionalHeader;	//指向[扩展头]的结构体[IMAGE_OPTIONAL_HEADER]
 } IMAGE_NT_HEADERS32, *PIMAGE_NT_HEADERS32;
 */
-	//结构体[文件头]说明
-	/*
-	typedef struct _IMAGE_FILE_HEADER {	//[文件头]结构体
-		WORD    Machine;				//文件运行的平台[i386/014C]
-		WORD    NumberOfSections;		//★区段数量
-		DWORD   TimeDateStamp;			//文件创建时间
-		DWORD   PointerToSymbolTable;	//符号表偏移
-		DWORD   NumberOfSymbols;		//符号个数
-		WORD    SizeOfOptionalHeader;	//扩展头的大小[32/00E0][64/00F0]
-		WORD    Characteristics;		//PE文件的属性
-	} IMAGE_FILE_HEADER, * PIMAGE_FILE_HEADER;
-	*/
+//结构体[文件头]说明
+/*
+typedef struct _IMAGE_FILE_HEADER {	//[文件头]结构体
+	WORD    Machine;				//文件运行的平台[i386/014C]
+	WORD    NumberOfSections;		//★区段数量
+	DWORD   TimeDateStamp;			//文件创建时间
+	DWORD   PointerToSymbolTable;	//符号表偏移
+	DWORD   NumberOfSymbols;		//符号个数
+	WORD    SizeOfOptionalHeader;	//扩展头的大小[32/00E0][64/00F0]
+	WORD    Characteristics;		//PE文件的属性
+} IMAGE_FILE_HEADER, * PIMAGE_FILE_HEADER;
+*/
 	PIMAGE_FILE_HEADER pFileHeader = &_pNt->FileHeader;
 	//结构体[PE信息头]说明
 	/*
@@ -160,20 +160,20 @@ typedef struct _IMAGE_NT_HEADERS {
 	this->is32o64 = pOptiHeader->Magic == 0x10B ? 32 :
 		pOptiHeader->Magic == 0x20B ? 64 : 0;
 	LPDWORD dwInfos = (LPDWORD)&this->NTHead_Info;
-	dwInfos[Idx00入口点]		= pOptiHeader->AddressOfEntryPoint;
-	dwInfos[Idx01镜像地址]	= pOptiHeader->ImageBase;
-	dwInfos[Idx02镜像大小]	= pOptiHeader->SizeOfImage;
-	dwInfos[Idx03代码基址]	= pOptiHeader->BaseOfCode;
-	dwInfos[Idx04数据基址]	= pOptiHeader->BaseOfData;
-	dwInfos[Idx05快对齐]		= pOptiHeader->SectionAlignment;
-	dwInfos[Idx06文件对齐]	= pOptiHeader->FileAlignment;
-	dwInfos[Idx07标志字]		= pOptiHeader->Magic;
-	dwInfos[Idx08子系统]		= pOptiHeader->Subsystem;
-	dwInfos[Idx09区段数目]	= pFileHeader->NumberOfSections;
+	dwInfos[Idx00入口点] = pOptiHeader->AddressOfEntryPoint;
+	dwInfos[Idx01镜像地址] = pOptiHeader->ImageBase;
+	dwInfos[Idx02镜像大小] = pOptiHeader->SizeOfImage;
+	dwInfos[Idx03代码基址] = pOptiHeader->BaseOfCode;
+	dwInfos[Idx04数据基址] = pOptiHeader->BaseOfData;
+	dwInfos[Idx05快对齐] = pOptiHeader->SectionAlignment;
+	dwInfos[Idx06文件对齐] = pOptiHeader->FileAlignment;
+	dwInfos[Idx07标志字] = pOptiHeader->Magic;
+	dwInfos[Idx08子系统] = pOptiHeader->Subsystem;
+	dwInfos[Idx09区段数目] = pFileHeader->NumberOfSections;
 	dwInfos[Idx10日期时间标志] = pFileHeader->TimeDateStamp;
-	dwInfos[Idx11首部大小]	= pOptiHeader->SizeOfHeaders;
-	dwInfos[Idx12特征值]		= pFileHeader->Characteristics;
-	dwInfos[Idx13校验和]		= pOptiHeader->CheckSum;
+	dwInfos[Idx11首部大小] = pOptiHeader->SizeOfHeaders;
+	dwInfos[Idx12特征值] = pFileHeader->Characteristics;
+	dwInfos[Idx13校验和] = pOptiHeader->CheckSum;
 	dwInfos[Idx14可选头部大小] = pFileHeader->SizeOfOptionalHeader;
 	dwInfos[Idx15RVA数及大小] = pOptiHeader->NumberOfRvaAndSizes;
 	if (this->is32o64 == 64) {
@@ -237,7 +237,7 @@ typedef struct _IMAGE_SECTION_HEADER {
 			wsprintfA(buff, "标志%lX\t%s\n",
 				pHeader[i].Characteristics, pHeader[i].Name);
 			OutputDebugStringA(buff);
-			
+
 		}
 		if (zoneInfos) {
 			wsprintfA(buff, "%s", pHeader[i].Name);
@@ -257,6 +257,36 @@ typedef struct _IMAGE_SECTION_HEADER {
 		}
 	}
 	return NULL;
+}
+
+DWORD CPE::FoaToRva(DWORD dwFoa)
+{
+	if (FOA == 0)	return false;
+
+	PIMAGE_SECTION_HEADER pHeader = IMAGE_FIRST_SECTION(_pNt);
+	if (dwFoa > 0 && dwFoa < _pNt->OptionalHeader.SizeOfHeaders)
+		return dwFoa;
+	for (DWORD i = 0; i < _pNt->FileHeader.NumberOfSections; ++i)
+	{
+		DWORD& dwSectionRva = pHeader[i].VirtualAddress;
+		DWORD& dwSectionLen = pHeader[i].SizeOfRawData;
+		DWORD  dwSectionEnd = dwSectionRva + dwSectionLen;
+		DWORD& dwSectionFoa = pHeader[i].PointerToRawData;
+		DWORD& dwSectionVSize = pHeader[i].Misc.VirtualSize;
+		/*
+		目标：FOA=目标RVA-段RVA+段FOA
+		变形：段FOA-段RVA=目标FOA-目标RVA
+		原型：原始VA - 默认基址   =  新VA -  新基址
+		*/
+		//DWORD dwFOA = dwRva - dwSectionRva + dwSectionFoa;
+		DWORD dwRva = dwFoa + dwSectionRva - dwSectionFoa;
+		if (dwRva >= dwSectionRva && dwRva < dwSectionEnd) {
+			return dwRva;
+		}
+
+	}
+
+	return 0;
 }
 
 /*
@@ -283,7 +313,7 @@ BOOL CPE::GetTableInfo()
 	ZeroMemory(&Table_Info, sizeof(PETables_INFO));
 
 
-	for (BYTE i = 0; i < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; ++i,++pTable)
+	for (BYTE i = 0; i < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; ++i, ++pTable)
 	{
 		pdwRVA[i] = pTable->VirtualAddress;
 		pdwSize[i] = pTable->Size;
@@ -334,7 +364,7 @@ typedef struct _IMAGE_EXPORT_DIRECTORY {
 } IMAGE_EXPORT_DIRECTORY, *PIMAGE_EXPORT_DIRECTORY;
 */
 
-	
+
 	DWORD EatFoa = RvaToFoa(pExport->AddressOfFunctions);
 	DWORD EntFoa = RvaToFoa(pExport->AddressOfNames);
 	DWORD EotFoa = RvaToFoa(pExport->AddressOfNameOrdinals);
@@ -350,7 +380,7 @@ typedef struct _IMAGE_EXPORT_DIRECTORY {
 
 	this->ExportTable.pDLLName = (char*)FOA + dwFoa;
 	//TCHAR buff[MAX_PATH];
-	PEExport_INFO tmp;	
+	PEExport_INFO tmp;
 	for (DWORD i = 0; i < pExport->NumberOfFunctions; i++)
 	{
 		//ZeroMemory(&tmp, sizeof(PEExport_INFO));
@@ -438,7 +468,7 @@ typedef struct _IMAGE_IMPORT_BY_NAME {
 
 
 
-	
+
 
 	dwFOA = RvaToFoa(pImportTable->Name);
 	PEImport_INFO tmp;
@@ -446,8 +476,8 @@ typedef struct _IMAGE_IMPORT_BY_NAME {
 	constexpr char* pNULL = (char*)"-";
 	while (pImportTable->Name != 0)
 	{
-		dwFOA = RvaToFoa(pImportTable->Name);
-		tmp = { 0,pImportTable->Name,dwFOA,0,0,pNULL };
+		dwFOA = RvaToFoa(pImportTable->Characteristics);
+		tmp = { 0,pImportTable->Characteristics,dwFOA,0,0,pNULL };
 		char* pDllName = (char*)FOA + dwFOA;
 		tmp.pApiName = pDllName;
 		importInfos.push_back(tmp);
@@ -459,35 +489,61 @@ typedef struct _IMAGE_IMPORT_BY_NAME {
 				0,pNULL
 		};
 
+		PIMAGE_THUNK_DATA64 pNameTable64 = NULL;
 		PIMAGE_THUNK_DATA32 pNameTable = NULL;
 		dwFOA = RvaToFoa(pImportTable->FirstThunk);		//使用IAT解析
 		pNameTable = (PIMAGE_THUNK_DATA32)(FOA + dwFOA);
-		while (pNameTable->u1.Ordinal != 0)
-		{
-			tmp.dwIndex = ++dwNum;
-			tmp.pApiName = pNULL;
-			dwFOA = RvaToFoa(pNameTable->u1.Ordinal);
-			if (IMAGE_SNAP_BY_ORDINAL(pNameTable->u1.Ordinal) == 1)
+		pNameTable64 = (PIMAGE_THUNK_DATA64)(FOA + dwFOA);
+		if (this->is32o64 == 32) {
+			while (pNameTable->u1.Ordinal != 0)
 			{
-				tmp.Thunk = pNameTable->u1.AddressOfData;
+				tmp.dwIndex = ++dwNum;
+				tmp.pApiName = pNULL;
+				dwFOA = RvaToFoa(pNameTable->u1.Ordinal);
+				if (IMAGE_SNAP_BY_ORDINAL(pNameTable->u1.Ordinal) == 1)
+				{
+					tmp.Thunk = pNameTable->u1.AddressOfData;
+				}
+				else
+				{
+					PIMAGE_IMPORT_BY_NAME pName = (PIMAGE_IMPORT_BY_NAME)(FOA + dwFOA);
+					tmp.Thunk = pNameTable->u1.Ordinal;
+					tmp.wdHint = pName->Hint;
+					tmp.pApiName = pName->Name;
+				}
+				importInfos.push_back(tmp);
+				++pNameTable;
+				tmp.dwRVA += 4;	tmp.dwFOA += 4;
 			}
-			else
+		}
+		else if (this->is32o64 == 64) {
+			while (pNameTable64->u1.Ordinal != 0)
 			{
-				PIMAGE_IMPORT_BY_NAME pName = (PIMAGE_IMPORT_BY_NAME)(FOA + dwFOA);
-				tmp.Thunk = pNameTable->u1.Ordinal;
-				tmp.wdHint = pName->Hint;
-				tmp.pApiName = pName->Name;
+				tmp.dwIndex = ++dwNum;
+				tmp.pApiName = pNULL;
+				dwFOA = RvaToFoa((DWORD)pNameTable64->u1.Ordinal);
+				if (IMAGE_SNAP_BY_ORDINAL(pNameTable64->u1.Ordinal) == 1)
+				{
+					tmp.Thunk = pNameTable64->u1.AddressOfData;
+				}
+				else
+				{
+					PIMAGE_IMPORT_BY_NAME pName = (PIMAGE_IMPORT_BY_NAME)(FOA + dwFOA);
+					tmp.Thunk = pNameTable64->u1.Ordinal;
+					tmp.wdHint = pName->Hint;
+					tmp.pApiName = pName->Name;
+				}
+				importInfos.push_back(tmp);
+				++pNameTable64;
+				tmp.dwRVA += 4;	tmp.dwFOA += 4;
 			}
-			importInfos.push_back(tmp);
-			++pNameTable;
-			tmp.dwRVA += 4;	tmp.dwFOA += 4;
 		}
 		++pImportTable;
 	}
 	return !importInfos.empty();
 }
 
-BOOL CPE::GetTLSInfo(DWORD Info[6])
+BOOL CPE::GetTLSInfo(ULONGLONG Info[6])
 {
 
 	if (FOA == 0)	return false;
@@ -498,25 +554,48 @@ BOOL CPE::GetTLSInfo(DWORD Info[6])
 	PIMAGE_TLS_DIRECTORY32 pTls = (PIMAGE_TLS_DIRECTORY32)(
 		RvaToFoa(dwImportDir->VirtualAddress)
 		+ FOA);
-	
+	PIMAGE_TLS_DIRECTORY64 pTls64 = (PIMAGE_TLS_DIRECTORY64)(
+		RvaToFoa(dwImportDir->VirtualAddress)
+		+ FOA);
 	//遍历TLS表信息
 	TCHAR buff[MAX_PATH];
-	wsprintfW(buff, L"%lX\n", pTls->StartAddressOfRawData);
-	Info[0] = pTls->StartAddressOfRawData;
-	OutputDebugStringW(buff);
-	wsprintfW(buff, L"%lX\n", pTls->EndAddressOfRawData);
-	Info[1] = pTls->EndAddressOfRawData;
-	OutputDebugStringW(buff);
-	wsprintfW(buff, L"%lX\n", pTls->AddressOfIndex);
-	Info[2] = pTls->AddressOfIndex;
-	OutputDebugStringW(buff);
-	wsprintfW(buff, L"%lX\n", pTls->AddressOfCallBacks);
-	Info[3] = pTls->AddressOfCallBacks;
-	OutputDebugStringW(buff);
-	wsprintfW(buff, L"%lX\n", pTls->Characteristics);
-	Info[4] = pTls->SizeOfZeroFill;
-	Info[5] = pTls->Characteristics;
-	OutputDebugStringW(buff);
+	if (this->is32o64 == 32) {
+		wsprintfW(buff, L"%lX\n", pTls->StartAddressOfRawData);
+		Info[0] = pTls->StartAddressOfRawData;
+		OutputDebugStringW(buff);
+		wsprintfW(buff, L"%lX\n", pTls->EndAddressOfRawData);
+		Info[1] = pTls->EndAddressOfRawData;
+		OutputDebugStringW(buff);
+		wsprintfW(buff, L"%lX\n", pTls->AddressOfIndex);
+		Info[2] = pTls->AddressOfIndex;
+		OutputDebugStringW(buff);
+		wsprintfW(buff, L"%lX\n", pTls->AddressOfCallBacks);
+		Info[3] = pTls->AddressOfCallBacks;
+		OutputDebugStringW(buff);
+		wsprintfW(buff, L"%lX\n", pTls->Characteristics);
+		Info[4] = pTls->SizeOfZeroFill;
+		Info[5] = pTls->Characteristics;
+		OutputDebugStringW(buff);
+	}
+	else if (this->is32o64 == 64) {
+		wsprintfW(buff, L"%llX\n", pTls->StartAddressOfRawData);
+		Info[0] = pTls64->StartAddressOfRawData;
+		OutputDebugStringW(buff);
+		wsprintfW(buff, L"%llX\n", pTls->EndAddressOfRawData);
+		Info[1] = pTls64->EndAddressOfRawData;
+		OutputDebugStringW(buff);
+		wsprintfW(buff, L"%llX\n", pTls->AddressOfIndex);
+		Info[2] = pTls64->AddressOfIndex;
+		OutputDebugStringW(buff);
+		wsprintfW(buff, L"%llX\n", pTls->AddressOfCallBacks);
+		Info[3] = pTls64->AddressOfCallBacks;
+		OutputDebugStringW(buff);
+		wsprintfW(buff, L"%llX\n", pTls->Characteristics);
+		Info[4] = pTls64->SizeOfZeroFill;
+		Info[5] = pTls64->Characteristics;
+		OutputDebugStringW(buff);
+	}
+
 	return 0;
 }
 

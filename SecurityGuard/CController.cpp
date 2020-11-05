@@ -168,6 +168,27 @@ void CController::DoSomeThingList(LPNMITEMACTIVATE& pNMItem)
 			pSubMenu1->TrackPopupMenu(TPM_LEFTALIGN, xy.x, xy.y, gView.m_Main);
 		}
 	}	//IF END：PE处理
+	else if (gView.m_Statu.tKind.hrTree == gView.m_tRoot->fProG.htTree) {
+		gView.m_str = gView.m_PVList->GetItemText(pNMItem->iItem, 3);
+		if (IDYES == MessageBox(m_wMain, gView.m_str, _T("确认卸载软件"), MB_YESNO)) {
+			STARTUPINFO si = { sizeof(STARTUPINFO) };	//启动信息
+			PROCESS_INFORMATION pi = {};				//进程信息
+			ZeroMemory(&pi, sizeof(pi));
+			CString tmp = gView.m_str;
+			CreateProcess(NULL,
+				tmp.GetBuffer(),	//命令行
+				NULL,				//进程安全属性
+				NULL,				//线程安全属性
+				FALSE,				//是否继承句柄
+				CREATE_NEW_CONSOLE,		//创建方式
+				NULL,					//环境
+				NULL,		//置运行目录
+				&si,			//启动信息
+				&pi);
+			CloseHandle(pi.hProcess);
+			CloseHandle(pi.hThread);
+		}
+	}	//IF END：PE处理
 }
 
 
@@ -470,18 +491,36 @@ void CController::DoSomeTreeRight(HTREEITEM& hTree, CPoint& point)
 
 void CController::DoSomeEdit()
 {
-	if (gView.m_Statu.tKind.str == gszPEFunctions[9]) {
-		CString str;
-		gView.m_PVEdit->GetWindowTextW(str);
-		DWORD RVA = _tcstol(str, NULL, 16);
-		DWORD FOA = gView.m_CPE.RvaToFoa(RVA);
-		str.Format(L"%lX", RVA+gView.m_CPE.NTHead_Info.dwPEHead[1]);
-		gView.m_PVList->SetItemText(0, 2, str);
-		str.Format(L"%lX", RVA);
-		gView.m_PVList->SetItemText(1, 2, str);
-		str.Format(L"%lX", FOA);
-		gView.m_PVList->SetItemText(2, 2, str);
+	if (gView.m_Statu.tKind.hrTree != gView.m_tRoot->fPE.htTree)
+		return;
+
+	CString str;
+	DWORD VA = 0, RVA = 0, FOA = 0, tmp;
+	gView.m_PVEdit->GetWindowTextW(str);
+	tmp = _tcstol(str, NULL, 16);
+	VA = gView.m_CPE.NTHead_Info.dwPEHead[1];
+	if (gView.m_Statu.tKind.str == gszPEFunctions[gdsz_PE地址转换RVA]) {
+		VA = tmp + gView.m_CPE.NTHead_Info.dwPEHead[1];
+		RVA = tmp;
+		FOA = gView.m_CPE.RvaToFoa(RVA);
 	}
+	else if (gView.m_Statu.tKind.str == gszPEFunctions[gdsz_PE地址转换VA]) {
+		RVA = tmp - VA;
+		VA = tmp;
+		FOA = gView.m_CPE.RvaToFoa(RVA);
+	}
+	else if (gView.m_Statu.tKind.str == gszPEFunctions[gdsz_PE地址转换FOA]) {
+		RVA = gView.m_CPE.FoaToRva(tmp);
+		FOA = tmp;
+		VA += RVA;
+	}
+
+	str.Format(L"%lX", VA);
+	gView.m_PVList->SetItemText(0, 2, str);
+	str.Format(L"%lX", RVA);
+	gView.m_PVList->SetItemText(1, 2, str);
+	str.Format(L"%lX", FOA);
+	gView.m_PVList->SetItemText(2, 2, str);
 }
 BOOL CController::CheckFileMd5(char pMd5[33])
 {

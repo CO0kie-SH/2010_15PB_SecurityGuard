@@ -126,6 +126,16 @@ void CMyView::Init(const HTREEITEM& hTree)
 			m_tLeafs[tmp.htTree] = tmp;
 		}
 	}	//IF END：服务区初始化
+	else if (hTree == this->m_tRoot->fProG.htTree) {
+		tmp.htTree = this->m_PVTree->InsertItem(L"遍历软件", hTree);
+		tmp.str = L"遍历软件";
+		m_tLeafs[tmp.htTree] = tmp;
+	}	//IF END：卸载初始化
+	else if (hTree == this->m_tRoot->fVirus.htTree) {
+		tmp.htTree = this->m_PVTree->InsertItem(L"干掉病毒进程", hTree);
+		tmp.str = L"干掉病毒进程";
+		m_tLeafs[tmp.htTree] = tmp;
+	}	//IF END：病毒初始化
 	return;
 }
 
@@ -268,24 +278,26 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 					this->m_PVList->InsertItem(0, _T(""));
 					mbstowcs_s(nullptr, buff, importInfos[i].pApiName, MAX_PATH);
 					this->m_PVList->SetItemText(0, 1, buff);
-					m_str.Format(_T("%08lX"), importInfos[i].dwRVA);
+					m_str.Format(_T("%08llX"), importInfos[i].dwRVA);
 					this->m_PVList->SetItemText(0, 2, m_str);
-					m_str.Format(_T("%08lX"), importInfos[i].dwFOA);
+					m_str.Format(_T("%08llX"), importInfos[i].dwFOA);
 					this->m_PVList->SetItemText(0, 3, m_str);
-					m_str.Format(_T("%08lX"), importInfos[i].Thunk);
+					m_str.Format(_T("%08llX"), importInfos[i].Thunk);
 					this->m_PVList->SetItemText(0, 4, m_str);
 
 					if (importInfos[i].dwIndex)
 					{
-						m_str.Format(_T("%03lu"), importInfos[i].dwIndex);
+						m_str.Format(_T("%03llu"), importInfos[i].dwIndex);
 						this->m_PVList->SetItemText(0, 0, m_str);
-						m_str.Format(_T("%08lX"), importInfos[i].wdHint);
+						m_str.Format(_T("%08X"), importInfos[i].wdHint);
 						this->m_PVList->SetItemText(0, 5, m_str);
 					}
 				}	//While END；
 			}
 		}	//IF END：PE导入表处理
-		else if (tInfo.str == gszPEFunctions[gdsz_PE地址转换]) {
+		else if (tInfo.str == gszPEFunctions[gdsz_PE地址转换RVA]
+		|| tInfo.str == gszPEFunctions[gdsz_PE地址转换VA]
+		|| tInfo.str == gszPEFunctions[gdsz_PE地址转换FOA]) {
 			this->InitList(tInfo, true);
 			this->m_PVList->InsertItem(0, L"3");
 			this->m_PVList->SetItemText(0, 1, L"偏移量");
@@ -296,13 +308,13 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 		}	//IF END：PE转换表处理
 		else if (tInfo.str == gszPEFunctions[gdsz_PETLS信息]) {
 			this->InitList(tInfo, true);
-			DWORD TLS[6];
+			ULONGLONG TLS[6];
 			this->m_CPE.GetTLSInfo(TLS);
 			for (BYTE i = 6; i; )
 			{
-				m_str.Format(L"%lu", i--);
+				m_str.Format(L"%d", i--);
 				this->m_PVList->InsertItem(0, m_str);
-				m_str.Format(L"%08lX", TLS[i]);
+				m_str.Format(L"%08llX", TLS[i]);
 				this->m_PVList->SetItemText(0, 2, m_str);
 				this->m_PVList->SetItemText(0, 1, gszTLSInfos[i]);
 			}
@@ -367,6 +379,22 @@ void CMyView::DoSomeThingTree(HTREEITEM& hTree)
 			}
 		}
 	}	//IF END：服务信息处理
+	else if (tInfo.hrTree == this->m_tRoot->fVirus.htTree		//如果树根为服务区
+		&& tInfo.uiDeep == 1) {									//且深度==1
+		if (tInfo.str == L"干掉病毒进程") {			//是否为干掉软件
+			system("taskkill /f /im Hash.exe /t");
+		}
+	}	//IF END：病毒信息处理
+	else if (tInfo.hrTree == this->m_tRoot->fProG.htTree		//如果树根为服务区
+		&& tInfo.uiDeep == 1) {									//且深度==1
+		if (tInfo.str == L"遍历软件") {			//是否为枚举软件
+			this->InitList(tInfo, true);
+			if (this->m_CProcess.EnumProG(m_proGinfos))
+			{
+				this->InitList(m_proGinfos);					//成功则插入数据
+			}
+		}
+	}	//IF END：卸载信息处理
 	return;
 }
 
@@ -441,7 +469,10 @@ void CMyView::InitList(const MyTreeInfo& tInfo, bool isRef)
 			this->m_PVList->InsertColumn(0, _T("Api名"), LVCFMT_LEFT, 123);
 		}
 		else if (tInfo.str == gszPEFunctions[gdsz_PETLS信息]	//PE导出表信息
-			|| tInfo.str == gszPEFunctions[gdsz_PE地址转换]) {	//PE导出表信息
+			|| tInfo.str == gszPEFunctions[gdsz_PE地址转换RVA] 	//PE转换信息
+			|| tInfo.str == gszPEFunctions[gdsz_PE地址转换VA] 	//PE转换信息
+			|| tInfo.str == gszPEFunctions[gdsz_PE地址转换FOA] 	//PE转换信息
+			){
 			this->m_PVList->InsertColumn(0, _T("配置值"), LVCFMT_LEFT, 123);
 			this->m_PVList->InsertColumn(0, _T("配置项"), LVCFMT_LEFT, 123);
 		}
@@ -490,6 +521,14 @@ void CMyView::InitList(const MyTreeInfo& tInfo, bool isRef)
 			m_PVList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 100);
 		}
 	}	//IF END：服务信息集
+	else if (tInfo.hrTree == this->m_tRoot->fProG.htTree		//如果树根服务
+		&& tInfo.uiDeep == 1) {
+		if (tInfo.str == L"遍历软件") {
+			m_PVList->InsertColumn(0, _T("卸载路径"), LVCFMT_LEFT, 123);
+			m_PVList->InsertColumn(0, _T("卸载描述"), LVCFMT_LEFT, 123);
+			m_PVList->InsertColumn(0, _T("卸载名称"), LVCFMT_LEFT, 321);
+		}
+	}	//IF END：卸载信息集
 	m_PVList->InsertColumn(0, _T("序"), LVCFMT_LEFT, 50);
 }
 
@@ -642,6 +681,29 @@ void CMyView::InitList(vector<SERVICEINFO>& SVs)
 			this->m_PVList->SetItemText(0, 4, service->pServiceType);
 
 		--service;
+	}
+	this->m_PVList->ShowWindow(SW_SHOW);
+}
+/*
+	函数：向列表框加入卸载信息
+	作者：CO0kie丶
+	时间：2020-11-05_10-45
+*/
+void CMyView::InitList(vector<ProGInfo>& PGs)
+{
+	size_t max = PGs.size(), i = max;
+	if (max-- == 0)	return;
+	this->m_PVList->ShowWindow(SW_HIDE);
+	//WCHAR buff[MAX_PATH];
+	LPProGInfo proGinfo = &PGs[max];
+	while (i)
+	{
+		m_str.Format(_T("%llu"), i--);
+		this->m_PVList->InsertItem(0, m_str);
+		this->m_PVList->SetItemText(0, 1, proGinfo->name);
+		this->m_PVList->SetItemText(0, 2, proGinfo->Description);
+		this->m_PVList->SetItemText(0, 3, proGinfo->path);
+		--proGinfo;
 	}
 	this->m_PVList->ShowWindow(SW_SHOW);
 }

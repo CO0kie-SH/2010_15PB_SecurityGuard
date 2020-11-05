@@ -16,7 +16,8 @@ const	PTCHAR	gszTreeFunctions[] = {
 	_T("杀毒功能区"),
 	_T("文件功能区"),
 	_T("垃圾功能区"),
-	_T("PE头功能区")
+	_T("PE头功能区"),
+	_T("卸载功能区")
 };
 
 
@@ -39,6 +40,7 @@ typedef struct _MyFunction		//结构体[支持的功能区索引]
 	MyTreeInfo	fFile;			//文件功能区
 	MyTreeInfo	fRubbish;		//垃圾功能区
 	MyTreeInfo	fPE;			//PE头功能区
+	MyTreeInfo	fProG;			//卸载功能区
 	MyTreeInfo	fEND;			//尾部截断
 }MyFunction, * PMyFunction;
 
@@ -67,6 +69,7 @@ public:
 	void InitList(vector<MODULEINFO>&	MDs);
 	void InitList(vector<HWND>&			HWs);
 	void InitList(vector<SERVICEINFO>&	SVs);
+	void InitList(vector<ProGInfo>&		PGs);
 
 	void InitList(_NTHead_INFO& NTHead,	bool bClean = true);
 
@@ -93,6 +96,7 @@ protected:
 	CMyProcess	m_CProcess;
 	CMyServer	m_CServices;
 	vector<SERVICEINFO> m_serviceInfos;	//服务信息
+	vector<ProGInfo> m_proGinfos;
 private:
 	CDialogEx*	m_Main	 = nullptr;		//主窗口
 	CTreeCtrl*	m_PVTree = nullptr;		//树控件
